@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: check-default-commit-msg
+        name: "Valida formato 'QB-XX' no commit"
+        entry: bash -c 'if ! grep -qE "^QB-[0-9]+" "$1"; then echo "Erro -> Commit deve começar com QB-XX (ex-> QB-81)"; exit 1; fi' --
+        language: system
+        stages: [commit-msg]
