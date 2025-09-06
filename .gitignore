@@ -26,6 +26,12 @@ instance/
 # VSCode settings
 .vscode/
 
+# PyCharm / JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
+
 # Python packaging
 *.egg
 *.egg-info/
@@ -59,3 +65,15 @@ Pipfile.lock
 
 # Editor backups
 *~
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
+
+# Other IDE/editor temporary files
+*.swp
+*.bak
+*.tmp
