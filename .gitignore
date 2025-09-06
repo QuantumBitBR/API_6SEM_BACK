@@ -1,0 +1,61 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# Flask instance folder
+instance/
+*.db
+*.sqlite3
+
+# Pytest cache
+.pytest_cache/
+.cache/
+
+# Logs
+*.log
+
+# VSCode settings
+.vscode/
+
+# Python packaging
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.wheel
+
+# MyPy
+.mypy_cache/
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+.cache
+
+# Pipenv
+Pipfile.lock
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Local environment variables
+.env
+.env.local
+.env.*.local
+
+# MacOS
+.DS_Store
+
+# Editor backups
+*~
