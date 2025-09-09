@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_restx import Api
-from controllers.tickets_by_company_controller import tickets_ns
+from controllers.tickets_controller import tickets_ns
 
 
 app = Flask(__name__)
