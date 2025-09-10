@@ -40,8 +40,6 @@ class TicketsRepository:
         with get_cursor() as cur:
             cur.execute(sql_query)
             return cur.fetchall()
-    
-    ##count tickets by categories and the categories are 1=Sistema, 2=Usuario and 3=Dados
 
     def get_tickets_by_category(self):
         """
@@ -49,17 +47,14 @@ class TicketsRepository:
         """
         sql_query = """
             SELECT
-                CASE 
-                    WHEN categoryid = 1 THEN 'Sistema'
-                    WHEN categoryid = 2 THEN 'Usuario'
-                    WHEN categoryid = 3 THEN 'Dados'
-                    ELSE 'Outros'
-                END AS category_name,
-                COUNT(ticketid) AS ticket_count
+                ca.name,
+                COUNT(t.ticketid) AS ticket_count
             FROM
-                tickets
+                tickets t
+            JOIN
+                categories ca ON t.categoryid = ca.categoryid
             GROUP BY
-                category_name;
+                ca.name;
         """
 
         with get_cursor() as cur:
