@@ -35,3 +35,19 @@ class TicketsService:
             })
             
         return tickets_by_product
+    
+    def get_tickets_by_category_count(self):
+        """
+        Lógica de negócio para obter e formatar a contagem de tickets por categoria.
+        """
+        results = self.tickets_repository.get_tickets_by_category()
+
+        tickets_by_category = []
+        for row in results:
+            category_name, ticket_count = row
+            tickets_by_category.append({
+                'category_name': category_name,
+                'ticket_count': ticket_count
+            })
+            
+        return tickets_by_category

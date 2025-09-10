@@ -34,3 +34,16 @@ class TicketsByProduct(Resource):
             return {'data': tickets_by_product}, 200
         except Exception as e:
             return {'error': str(e)}, 500
+        
+@tickets_ns.route('/tickets-by-category')
+class TicketsByCategory(Resource):
+    def get(self):
+        """
+        Retorna a quantidade de tickets por categoria.
+        """
+        try:
+            tickets_service = TicketsService()
+            tickets_by_category = tickets_service.get_tickets_by_category_count()
+            return {'data': tickets_by_category}, 200
+        except Exception as e:
+            return {'error': str(e)}, 500
