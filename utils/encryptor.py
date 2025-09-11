@@ -25,7 +25,6 @@ def encrypt_data(key, plaintext):
 
 
 def decrypt_data(key, ciphertext):
-    # garante bytes
     if isinstance(key, memoryview):
         key = bytes(key)
     if isinstance(ciphertext, memoryview):
@@ -34,8 +33,6 @@ def decrypt_data(key, ciphertext):
     f = Fernet(key)
 
     try:
-        # descriptografa exatamente os bytes criptografados
         return f.decrypt(ciphertext).decode('utf-8')
     except Exception:
-        # caso não seja possível descriptografar (dado não criptografado ou inválido)
         return ciphertext.decode('utf-8', errors='ignore')
