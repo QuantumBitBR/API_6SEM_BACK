@@ -37,7 +37,7 @@ def update_registers_users(users):
 
 def get_tickets():
     with get_cursor() as cur:
-        cur.execute("SELECT t.ticketid, t.title, t.description FROM tickets t where ticketid >= 40001 and ticketid <= 45000")
+        cur.execute("SELECT t.ticketid, t.title, t.description FROM tickets t where ticketid >= 45001")
         return cur.fetchall()
 
 def update_registers_tickets(tickets):
@@ -63,6 +63,7 @@ def update_registers_tickets(tickets):
                 INSERT INTO encrypt_ticket (ticketid, keyencrypt)
                         VALUES (%s, %s)
                 """, (i[0], key))
+            print("id: ", i[0])
             
 def get_tickets_descr():
     with get_cursor() as cur:
@@ -75,5 +76,3 @@ def descriptografando(users):
             print(decrypt_data(key, encrypted_fullname))
         except Exception:
             print("Dado não criptografado ou inválido:", encrypted_fullname)
-# descriptografando(get_tickets_descr()) 
-update_registers_tickets(get_tickets())
