@@ -4,7 +4,6 @@ class TicketsRepository:
     def get_tickets_by_company(self):
         """
         Executa a consulta no banco de dados para contar os tickets por empresa.
-        Retorna uma lista de tuplas.
         """
         sql_query = """
             SELECT 
@@ -25,7 +24,6 @@ class TicketsRepository:
     def get_tickets_by_product(self):
         """
         Executa a consulta no banco de dados para contar os tickets por produto.
-        Retorna uma lista de tuplas.
         """
         sql_query = """
             SELECT
@@ -37,6 +35,26 @@ class TicketsRepository:
                 products p ON t.productid = p.productid
             GROUP BY
                 p.name;
+        """
+
+        with get_cursor() as cur:
+            cur.execute(sql_query)
+            return cur.fetchall()
+
+    def get_tickets_by_category(self):
+        """
+        Executa a consulta no banco de dados para contar os tickets por categoria.
+        """
+        sql_query = """
+            SELECT
+                ca.name,
+                COUNT(t.ticketid) AS ticket_count
+            FROM
+                tickets t
+            JOIN
+                categories ca ON t.categoryid = ca.categoryid
+            GROUP BY
+                ca.name;
         """
 
         with get_cursor() as cur:
