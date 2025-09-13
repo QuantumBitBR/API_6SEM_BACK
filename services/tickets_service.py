@@ -51,3 +51,19 @@ class TicketsService:
             })
             
         return tickets_by_category
+    
+    def get_tickets_by_status_count(self):
+        """
+        Lógica de negócio para obter e formatar a contagem de tickets por status.
+        """
+        results = self.tickets_repository.get_tickets_by_status()
+        
+        tickets_by_status = []
+        for row in results:
+            status_name, ticket_count = row
+            tickets_by_status.append({
+                'status_name': status_name,
+                'ticket_count': ticket_count
+            })
+        
+        return tickets_by_status
