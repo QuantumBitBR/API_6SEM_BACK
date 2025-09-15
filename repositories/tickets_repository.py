@@ -60,3 +60,29 @@ class TicketsRepository:
         with get_cursor() as cur:
             cur.execute(sql_query)
             return cur.fetchall()
+
+    def get_tickets_by_status(self):
+        """
+        Executa a consulta no banco de dados para contar os tickets por status.
+        """
+        sql_query = """
+            SELECT
+                s.name,
+                COUNT(s.name) AS ticket_count
+            FROM
+                ticketstatushistory tsh
+            JOIN
+                statuses s ON tsh.tostatusid = s.statusid
+            WHERE
+                tsh.historyid IN (
+                    SELECT MAX(historyid)
+                    FROM ticketstatushistory
+                    GROUP BY ticketid
+                )
+            GROUP BY
+                s.name;
+        """
+        
+        with get_cursor() as cur:
+            cur.execute(sql_query)
+            return cur.fetchall()
