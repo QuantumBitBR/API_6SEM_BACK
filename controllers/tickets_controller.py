@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource
 from services.tickets_service import TicketsService
+from config.auth import jwt_required
 
 tickets_ns = Namespace(
     'tickets', 
@@ -8,6 +9,7 @@ tickets_ns = Namespace(
 
 @tickets_ns.route('/tickets-by-company')
 class TicketsByCompany(Resource):
+    @jwt_required
     def get(self):
         """
         Retorna a quantidade de tickets por empresa.
@@ -24,6 +26,7 @@ class TicketsByCompany(Resource):
         
 @tickets_ns.route('/tickets-by-product')
 class TicketsByProduct(Resource):
+    @jwt_required
     def get(self):
         """
         Retorna a quantidade de tickets por produto.
@@ -37,6 +40,7 @@ class TicketsByProduct(Resource):
         
 @tickets_ns.route('/tickets-by-category')
 class TicketsByCategory(Resource):
+    @jwt_required
     def get(self):
         """
         Retorna a quantidade de tickets por categoria.
