@@ -7,7 +7,6 @@ from config.db_connection import get_cursor
 from utils.encryptor import decrypt_data
 from os import environ
 
-# Configurar logging
 logging.basicConfig(level=logging.INFO)
 
 class OpenSearchIndexer:
@@ -55,7 +54,7 @@ class OpenSearchIndexer:
             cur.execute("""
                 SELECT t.ticketid, t.title, t.description, e.keyencrypt 
                 FROM tickets t 
-                INNER JOIN encrypt_ticket e ON e.ticketid = t.ticketid where t.ticketid >=151 and t.ticketid <=1000
+                INNER JOIN encrypt_ticket e ON e.ticketid = t.ticketid where t.ticketid >252
             """)
             rows = cur.fetchall()
 
@@ -82,14 +81,3 @@ class OpenSearchIndexer:
         )
         return [hit["_source"] for hit in res["hits"]["hits"]]
     
-def main():
-    indexer = OpenSearchIndexer(index_name="tasks")
-    
-    if indexer.client.ping():
-        print("Conexão com Bonsai Search estabelecida com sucesso!")
-        #indexer.index_tasks()
-    else:
-        print("Falha na conexão com Bonsai Search")
-        
-if __name__ == "__main__":
-    main()

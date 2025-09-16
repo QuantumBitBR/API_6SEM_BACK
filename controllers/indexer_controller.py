@@ -22,6 +22,7 @@ class Search(Resource):
     @indexes_ns.marshal_list_with(task_model)
     def get(self):
         q = request.args.get("q", "")
+        print(q)
         results = indexer_service.search(q)
         return results
 
