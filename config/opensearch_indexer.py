@@ -5,6 +5,7 @@ import logging
 from urllib.parse import urlparse
 from config.db_connection import get_cursor
 from utils.encryptor import decrypt_data
+from os import environ
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
@@ -13,7 +14,7 @@ class OpenSearchIndexer:
     def __init__(self, index_name="tasks"):
         self.index_name = index_name
 
-        bonsai = 'https://esQ7byc6Ng:k2ufgzKeUMpqYrbECJxim5o@quantumbit-search-2371077064.us-east-1.bonsaisearch.net:443'
+        bonsai = environ['BONSAI_URL']
         auth = re.search(r'https://(.*)@', bonsai).group(1).split(':')
         host = bonsai.replace('https://%s:%s@' % (auth[0], auth[1]), '')
 
@@ -86,7 +87,7 @@ def main():
     
     if indexer.client.ping():
         print("Conexão com Bonsai Search estabelecida com sucesso!")
-        indexer.index_tasks()
+        #indexer.index_tasks()
     else:
         print("Falha na conexão com Bonsai Search")
         
