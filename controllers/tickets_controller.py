@@ -1,5 +1,6 @@
 from flask_restx import Namespace, Resource
 from services.tickets_service import TicketsService
+from config.auth import jwt_required
 
 tickets_ns = Namespace(
     'tickets', 
