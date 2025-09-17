@@ -66,9 +66,13 @@ class TicketsRepository:
         Executa a consulta no banco de dados para contar os tickets por status.
         """
         sql_query = """
+            WITH total_tickets AS (
+                SELECT COUNT(DISTINCT ticketid) AS total_count
+                FROM ticketstatushistory
+            )
             SELECT
                 s.name,
-                COUNT(s.name) AS ticket_count
+                CAST(COUNT(s.name) AS REAL) * 100 / (SELECT total_count FROM total_tickets) AS percentage
             FROM
                 ticketstatushistory tsh
             JOIN
