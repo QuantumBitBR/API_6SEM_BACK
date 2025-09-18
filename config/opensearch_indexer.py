@@ -66,18 +66,3 @@ class OpenSearchIndexer:
                 }
                 self.client.index(index=self.index_name, id=task_id, body=doc)
                 print(task_id)
-
-    def search(self, query: str):
-        res = self.client.search(
-            index=self.index_name,
-            body={
-                "query": {
-                    "multi_match": {
-                        "query": query,
-                        "fields": ["title", "description"]
-                    }
-                }
-            }
-        )
-        return [hit["_source"] for hit in res["hits"]["hits"]]
-    

@@ -9,7 +9,7 @@ indexes_ns = Namespace(
 )
 
 indexer = OpenSearchIndexer()
-indexer_service = IndexService(indexer)
+indexer_service = IndexService()
 
 task_model = indexes_ns.model('Task', {
     'id': fields.Integer,

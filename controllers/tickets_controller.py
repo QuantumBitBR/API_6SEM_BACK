@@ -1,4 +1,5 @@
 from flask_restx import Namespace, Resource
+from flask import request
 from services.tickets_service import TicketsService
 from config.auth import jwt_required
 
@@ -58,5 +59,17 @@ class TicketsByStatus(Resource):
             tickets_service = TicketsService()
             tickets_by_status = tickets_service.get_tickets_by_status_count()
             return {'data': tickets_by_status}, 200
+        except Exception as e:
+            return {'error': str(e)}, 500
+        
+@tickets_ns.route('/find-tickets-key-word')
+class TicketsByKeyWord(Resource):
+    def post(self):
+        try:
+            tickets_service = TicketsService()
+            request_body = request.get_json()
+            key_word = request_body.get('keyword') if request_body else None
+
+            return tickets_service.get_tickets_by_key_word(key_word)
         except Exception as e:
             return {'error': str(e)}, 500
