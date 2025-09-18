@@ -1,4 +1,4 @@
-from flask_restx import Namespace, Resource
+from flask_restx import Namespace, Resource, fields
 from flask import request
 from services.tickets_service import TicketsService
 from config.auth import jwt_required
@@ -7,6 +7,10 @@ tickets_ns = Namespace(
     'tickets', 
     description='Endpoints relacionados a tickets'
 )
+ticket_search_model = tickets_ns.model('TicketSearch', {
+    'keyword': fields.String(required=True, description='Palavra-chave para buscar nos tickets')
+})
+
 
 @tickets_ns.route('/tickets-by-company')
 class TicketsByCompany(Resource):
@@ -64,6 +68,7 @@ class TicketsByStatus(Resource):
         
 @tickets_ns.route('/find-tickets-key-word')
 class TicketsByKeyWord(Resource):
+    @tickets_ns.expect(ticket_search_model, validate=True)
     def post(self):
         try:
             tickets_service = TicketsService()
