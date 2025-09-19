@@ -7,6 +7,8 @@ from controllers.indexer_controller import indexes_ns
 from controllers.auth_controller import auth_ns
 from controllers.user_controller import user_ns
 from config.extensions import db, ma
+from controllers.companies_controller import companies_ns
+from controllers.privacy_policy_controller import privacy_policy_ns
 
 app = Flask(__name__)
 api = Api(app, version="1.0", title="Help.AI!", description="Help.AI!")
@@ -23,6 +25,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 ma.init_app(app)
+api.add_namespace(companies_ns, '/companies')
+api.add_namespace(privacy_policy_ns, '/privacy')
 
 if __name__ == "__main__":
     app.run(debug=True)

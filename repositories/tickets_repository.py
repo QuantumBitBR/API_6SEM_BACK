@@ -1,4 +1,6 @@
 from config.db_connection import get_cursor
+from utils.encryptor import decrypt_data
+from datetime import datetime
 
 class TicketsRepository:
     def get_tickets_by_company(self):
@@ -90,3 +92,52 @@ class TicketsRepository:
         with get_cursor() as cur:
             cur.execute(sql_query)
             return cur.fetchall()
+        
+    def get_by_id(self, id: int):
+        sql_query = """
+            SELECT 
+                t.description, 
+                t.title, 
+                c.name AS company_name, 
+                p.name AS product_name, 
+                cat.name AS category_name, 
+                s2.name AS subcategory_name,
+                prio.name AS priority_name, 
+                s.name AS status_name, 
+                t.channel, 
+                t.device, 
+                e.keyencrypt
+            FROM tickets t
+            INNER JOIN companies c ON c.companyid = t.companyid
+            INNER JOIN priorities prio ON prio.priorityid = t.priorityid
+            INNER JOIN products p ON p.productid = t.productid
+            INNER JOIN statuses s ON s.statusid = t.currentstatusid 
+            INNER JOIN categories cat ON cat.categoryid = t.categoryid
+            INNER JOIN subcategories s2 ON s2.subcategoryid = t.subcategoryid 
+            INNER JOIN encrypt_ticket e ON e.ticketid = t.ticketid
+            WHERE t.ticketid = %s;
+        """
+
+        with get_cursor() as cur:
+            cur.execute(sql_query, (int(id),))
+            row = cur.fetchone()
+            if not row:
+                raise ValueError(f"Id {id} não encontrado!")
+
+            if isinstance(row, tuple):
+                colnames = [desc[0] for desc in cur.description]
+                row = dict(zip(colnames, row))
+
+            for k, v in row.items():
+                if isinstance(v, memoryview):
+                    row[k] = v.tobytes().decode('utf-8')
+
+            key = row['keyencrypt']
+            row['title'] = decrypt_data(key, row['title'])
+            row['description'] = decrypt_data(key, row['description'])
+
+            row.pop('keyencrypt', None)
+
+            return row
+
+

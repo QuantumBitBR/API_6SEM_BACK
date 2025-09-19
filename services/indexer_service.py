@@ -1,8 +1,8 @@
 from config.opensearch_indexer import OpenSearchIndexer
 
 class IndexService:
-    def __init__(self, indexer: OpenSearchIndexer):
-        self.indexer = indexer
+    def __init__(self):
+        self.indexer = OpenSearchIndexer()
 
     def search(self, query: str):
         res = self.indexer.client.search(
@@ -11,7 +11,8 @@ class IndexService:
                 "query": {
                     "multi_match": {
                         "query": query,
-                        "fields": ["title", "description"]
+                        "fields": ["title", "description"],
+                        "fuzziness": 'AUTO'
                     }
                 }
             }
