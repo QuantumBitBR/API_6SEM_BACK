@@ -16,3 +16,11 @@ class PrivacyPolicyRepository:
                 return True
         except Exception as e:
             return False
+        
+    def get_current_privacy(self):
+        sql_query = """
+            SELECT * FROM privacy_policy_version order by validity_date DESC limit 1;
+        """
+        with get_cursor() as cur:
+            cur.execute(sql_query)
+            return cur.fetchone()
