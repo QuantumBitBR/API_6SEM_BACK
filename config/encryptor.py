@@ -10,6 +10,10 @@ def encrypt_data(key, plaintext):
 
 # Descriptografar dados
 def decrypt_data(key, ciphertext):
+    if isinstance(key, str):
+        key = key.encode()
+    if isinstance(ciphertext, memoryview):  # 🔑 conversão extra para valores vindos do banco
+        ciphertext = ciphertext.tobytes()
     f = Fernet(key)
     return f.decrypt(ciphertext).decode()
 

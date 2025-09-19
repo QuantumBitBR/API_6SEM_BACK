@@ -1,28 +1,31 @@
 from repositories.companies_repository import CompaniesRepository
+from config.encryptor import decrypt_data  # função utilitária
 
 class CompaniesService:
     def __init__(self):
         self.companies_repository = CompaniesRepository()
 
-    def get_companies_with_users_list(self):
-        companies_with_users = self.companies_repository.get_companies_with_users()
+    def get_companies_with_users_data(self):
+        """
+        Retorna empresas apenas com nome + lista de nomes de funcionários descriptografados.
+        """
+        results = self.companies_repository.get_companies_with_users_data()
         
         companies = {}
-        for company_name, user_fullname in companies_with_users:
+        for row in results:
+            (companyid, company_name, userid, fullname_enc, key_encrypt) = row
 
-            company_name_str = str(company_name)
-            user_fullname_str = str(user_fullname)
-            
+            try:
+                fullname = decrypt_data(key_encrypt, fullname_enc)
+            except Exception as e:
+                fullname = f"ERRO ao descriptografar ({e})"
+
             if company_name not in companies:
-                companies[company_name] = []
-            companies[company_name].append(user_fullname)
-            
-        result = [
-            {
-                "company_name": company,
-                "users": users
-            }
-            for company, users in companies.items()
-        ]
+                companies[company_name] = {
+                    "company_name": company_name,
+                    "users": []
+                }
+
+            companies[company_name]["users"].append(fullname)
         
-        return result
+        return list(companies.values())
