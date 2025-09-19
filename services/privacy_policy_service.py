@@ -9,3 +9,5 @@ class PrivacyPolicyService:
         response = self.privacy_repository.post_new_accept(userid, privacy_id)
         return response
         
+    def get_current_privacy(self):
+        return self.privacy_repository.get_current_privacy()
