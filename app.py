@@ -3,7 +3,6 @@ from flask import Flask
 from flask_restx import Api
 from flask_cors import CORS
 from controllers.tickets_controller import tickets_ns
-from controllers.indexer_controller import indexes_ns
 from controllers.auth_controller import auth_ns
 from controllers.user_controller import user_ns
 from config.extensions import db, ma
@@ -15,7 +14,6 @@ api = Api(app, version="1.0", title="Help.AI!", description="Help.AI!")
 CORS(app)
 
 api.add_namespace(tickets_ns, '/tickets')
-api.add_namespace(indexes_ns, "/index")
 api.add_namespace(user_ns, "/user")
 api.add_namespace(auth_ns, "/auth")
 # Database config
