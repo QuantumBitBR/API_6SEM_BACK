@@ -24,7 +24,6 @@ class TicketsByCompany(Resource):
         
 @tickets_ns.route('/tickets-by-product')
 class TicketsByProduct(Resource):
-    @jwt_required
     def get(self):
         """
         Retorna a quantidade de tickets por produto.
