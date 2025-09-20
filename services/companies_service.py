@@ -1,5 +1,5 @@
 from repositories.companies_repository import CompaniesRepository
-from config.encryptor import decrypt_data  # função utilitária
+from utils.encryptor import decrypt_data  # função utilitária
 
 class CompaniesService:
     def __init__(self):
