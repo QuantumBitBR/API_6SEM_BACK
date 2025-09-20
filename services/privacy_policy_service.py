@@ -11,3 +11,7 @@ class PrivacyPolicyService:
         
     def get_current_privacy(self):
         return self.privacy_repository.get_current_privacy()
+
+    def get_last_user_accept(self, userid):
+        print("USERID:", userid)
+        return self.privacy_repository.get_last_user_accept(userid)

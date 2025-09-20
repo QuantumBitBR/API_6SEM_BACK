@@ -5,6 +5,7 @@ from functools import wraps
 from os import environ
 from werkzeug.security import check_password_hash
 from services.user_service import UserService
+from services.privacy_policy_service import PrivacyPolicyService
 
 
 def generate_token(user):
@@ -42,14 +43,21 @@ def auth():
     if not user:
         return {'error': 'Usuário não encontrado'}, 401
 
+    privacy_service = PrivacyPolicyService()
+
+    last = privacy_service.get_last_user_accept(user.id)
+    print("LAST:", last)
+
     # Verifica senha
     if check_password_hash(user.password, data.password):
         token = generate_token(user)
         return {
             'message': 'Validated successfully',
             'token': token,
-            'exp': (datetime.datetime.utcnow() + datetime.timedelta(hours=12)).isoformat()
+            'exp': (datetime.datetime.utcnow() + datetime.timedelta(hours=12)).isoformat(),
+            'user_id': user.id
         }, 200
+
 
     return {'message': 'could not verify', 'WWW-Authenticate': 'Basic auth="Login required"'}, 401
 
