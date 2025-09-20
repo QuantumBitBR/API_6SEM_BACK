@@ -6,7 +6,7 @@ auth_ns = Namespace(
     description='Endpoints de autenticação com JWT'
 )
 
-@auth_ns.route('/auth')
+@auth_ns.route('/login')
 class AuthResource(Resource):
     def post(self):
         return auth.auth()
