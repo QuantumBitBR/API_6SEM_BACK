@@ -24,3 +24,25 @@ class PrivacyPolicyRepository:
         with get_cursor() as cur:
             cur.execute(sql_query)
             return cur.fetchone()
+        
+    def get_last_user_accept(self, userid):
+        sql_query = """
+            SELECT * FROM privacy_policy_version_accept 
+            WHERE id_user = %s 
+            ORDER BY validity_date DESC 
+            LIMIT 1;
+        """
+        with get_cursor() as cur:
+            cur.execute(sql_query, (userid,))
+            return cur.fetchone()
+        
+    def get_last_policy_user_accept(self, userid, privacy_id):
+        sql_query = """
+            SELECT * FROM privacy_policy_version_accept 
+            WHERE id_user = %s AND id_privacy_policy = %s
+            ORDER BY validity_date DESC 
+            LIMIT 1;
+        """
+        with get_cursor() as cur:
+            cur.execute(sql_query, (userid, privacy_id))
+            return cur.fetchone()
