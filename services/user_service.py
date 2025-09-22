@@ -1,45 +1,36 @@
+from repositories.user_repository import UserRepository
 from werkzeug.security import generate_password_hash
 from config.extensions import db
 from flask import request, jsonify
 from models.user import User, user_schema, users_schema
 
-
 class UserService:
-    def get_users():
-        name = request.args.get('name')
-        if name:
-            users = User.query.filter(User.name.ilike(f'%{name}%')).all()
-        else:
-            users = User.query.all()
-        if users:
-            result =  users_schema.dump(users)
-            return jsonify({'message': 'sucessfully fetched', 'data': result.data})
+    def __init__(self):
+        self.user_repository = UserRepository()
+
+
+    def get_user_by_id(self, userid):
+        response = self.user_repository.get_by_id(userid)
         
-        return jsonify({'message': 'no users found', 'data': {}})
+        if response == None:
+            return {
+                "error": "User not found"
+            }, 404
+        
+        return response, 200
 
-    def post_user():
-        name = request.json['username']
-        password = request.json['password']
-        email = request.json['email']
-        role = request.json['role']
+    def delete_data_user(self, userid):
+        user, status = self.get_user_by_id(userid)
+        if status == 404:
+            return user, status
+        
+        response_delete = self.user_repository.delete_data_user(userid)
 
-        user = user_by_email(email)
-        if user:
-            result = user_schema.dump(user)
-            return jsonify({'message': 'user already exists', 'data': {}})
-
-        pass_hash = generate_password_hash(password)
-        user = User(name, pass_hash, role, email)
-
-        try:
-            db.session.add(user)
-            db.session.commit()
-            result = user_schema.dump(user)
-            return jsonify({'message': 'successfully registered', 'data': result.data}), 201
-        except:
-            return jsonify({'message': 'unable to create', 'data': {}}), 500
-
-
+        if response_delete:
+            return {}, 200
+        return {
+            "error": "Something went wrong"
+        }, 500
 
     def user_by_email(self, email):
         return User.query.filter(User.email == email)
