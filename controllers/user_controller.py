@@ -1,6 +1,8 @@
 from flask_restx import Namespace, Resource, fields
 from flask import request
 from services.user_service import UserService
+from models.user import user_schema
+
 
 users_ns = Namespace(
     'Usuários de tickets',
@@ -26,3 +28,23 @@ class DeleteUser(Resource):
         user_service = UserService()
         result, status = user_service.delete_data_user(userid)
         return result, status
+    
+@users_ns.route('/user-by-email')
+class UserByEmail(Resource):
+    def get(self):
+        """
+        Busca usuário por email.
+        """
+        try:
+            data = request.get_json()
+            email = data.get('email')
+            user_service = UserService()
+            user = user_service.user_by_email(email).first()
+            
+            if user:
+                return {'data': user_schema.dump(user)}, 200
+            else:
+                return {'message': 'User not found'}, 404
+
+        except Exception as e:
+            return {'error': str(e)}, 500

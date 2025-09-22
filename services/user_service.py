@@ -1,4 +1,8 @@
 from repositories.user_repository import UserRepository
+from werkzeug.security import generate_password_hash
+from config.extensions import db
+from flask import request, jsonify
+from models.user import User, user_schema, users_schema
 
 class UserService:
     def __init__(self):
@@ -27,3 +31,6 @@ class UserService:
         return {
             "error": "Something went wrong"
         }, 500
+
+    def user_by_email(self, email):
+        return User.query.filter(User.email == email)
