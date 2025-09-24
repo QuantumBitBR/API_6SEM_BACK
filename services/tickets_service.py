@@ -90,7 +90,7 @@ class TicketsService:
             for i in tickets:
                 tickets_completos.append(self.get_by_id(i['id']))
             
-            return tickets_completos, 200
+            return {"data": tickets_completos}, 200
         except Exception:
             return {
                 'error': 'erro ao tentar buscar os dados'

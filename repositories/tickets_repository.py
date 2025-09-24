@@ -96,6 +96,7 @@ class TicketsRepository:
     def get_by_id(self, id: int):
         sql_query = """
             SELECT 
+                t.ticketid,
                 t.description, 
                 t.title, 
                 c.name AS company_name, 
