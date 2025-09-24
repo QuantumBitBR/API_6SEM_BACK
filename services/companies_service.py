@@ -1,5 +1,5 @@
 from repositories.companies_repository import CompaniesRepository
-from utils.encryptor import decrypt_data  # função utilitária
+from utils.encryptor import decrypt_data
 
 class CompaniesService:
     def __init__(self):
@@ -12,6 +12,7 @@ class CompaniesService:
         results = self.companies_repository.get_companies_with_users_data()
         
         companies = {}
+        users_with_ids = {}
         for row in results:
             (companyid, company_name, userid, fullname_enc, key_encrypt) = row
 
@@ -26,6 +27,8 @@ class CompaniesService:
                     "users": []
                 }
 
-            companies[company_name]["users"].append(fullname)
+            companies[company_name]["users"].append({
+                "id":userid,
+                "fullname":fullname})
         
         return list(companies.values())
