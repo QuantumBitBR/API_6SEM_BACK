@@ -3,6 +3,8 @@ from flask import request
 from services.tickets_service import TicketsService
 from config.auth import jwt_required
 
+from config.extensions import cache
+import time 
 tickets_ns = Namespace(
     'tickets', 
     description='Endpoints relacionados a tickets'
@@ -13,7 +15,9 @@ ticket_search_model = tickets_ns.model('TicketSearch', {
 
 
 @tickets_ns.route('/tickets-by-company')
+
 class TicketsByCompany(Resource):
+    @cache.cached(timeout=86400)
     def get(self):
         """
         Retorna a quantidade de tickets por empresa.
@@ -27,8 +31,10 @@ class TicketsByCompany(Resource):
         except Exception as e:
             return {'error': str(e)}, 500
         
+
 @tickets_ns.route('/tickets-by-product')
 class TicketsByProduct(Resource):
+    @cache.cached(timeout=86400)
     def get(self):
         """
         Retorna a quantidade de tickets por produto.
@@ -39,9 +45,11 @@ class TicketsByProduct(Resource):
             return {'data': tickets_by_product}, 200
         except Exception as e:
             return {'error': str(e)}, 500
-        
+
+
 @tickets_ns.route('/tickets-by-category')
 class TicketsByCategory(Resource):
+    @cache.cached(timeout=86400)
     def get(self):
         """
         Retorna a quantidade de tickets por categoria.
@@ -53,8 +61,10 @@ class TicketsByCategory(Resource):
         except Exception as e:
             return {'error': str(e)}, 500
         
+
 @tickets_ns.route('/tickets-by-status')
 class TicketsByStatus(Resource):
+    @cache.cached(timeout=86400)
     def get(self):
         """
         Retorna a quantidade de tickets por status.
