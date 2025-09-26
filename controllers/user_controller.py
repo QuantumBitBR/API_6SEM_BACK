@@ -2,7 +2,7 @@ from flask_restx import Namespace, Resource, fields
 from flask import request
 from services.user_service import UserService
 from models.user import user_schema
-
+from config.auth import jwt_required
 
 users_ns = Namespace(
     'Usuários de tickets',
@@ -18,6 +18,7 @@ class DeleteUser(Resource):
             'required': True
         }
     })
+    @jwt_required
     def delete(self):
         userid = request.args.get("userid", type=int)
         if userid == None:
@@ -31,6 +32,7 @@ class DeleteUser(Resource):
     
 @users_ns.route('/user-by-email')
 class UserByEmail(Resource):
+    @jwt_required
     def get(self):
         """
         Busca usuário por email.
