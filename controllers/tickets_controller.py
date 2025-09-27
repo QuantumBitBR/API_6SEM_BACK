@@ -18,6 +18,7 @@ ticket_search_model = tickets_ns.model('TicketSearch', {
 
 class TicketsByCompany(Resource):
     @cache.cached(timeout=86400)
+    @jwt_required
     def get(self):
         """
         Retorna a quantidade de tickets por empresa.
@@ -35,6 +36,7 @@ class TicketsByCompany(Resource):
 @tickets_ns.route('/tickets-by-product')
 class TicketsByProduct(Resource):
     @cache.cached(timeout=86400)
+    @jwt_required
     def get(self):
         """
         Retorna a quantidade de tickets por produto.
@@ -49,7 +51,9 @@ class TicketsByProduct(Resource):
 
 @tickets_ns.route('/tickets-by-category')
 class TicketsByCategory(Resource):
+    
     @cache.cached(timeout=86400)
+    @jwt_required
     def get(self):
         """
         Retorna a quantidade de tickets por categoria.
@@ -65,6 +69,7 @@ class TicketsByCategory(Resource):
 @tickets_ns.route('/tickets-by-status')
 class TicketsByStatus(Resource):
     @cache.cached(timeout=86400)
+    @jwt_required
     def get(self):
         """
         Retorna a quantidade de tickets por status.
@@ -79,6 +84,7 @@ class TicketsByStatus(Resource):
 @tickets_ns.route('/find-tickets-key-word')
 class TicketsByKeyWord(Resource):
     @tickets_ns.expect(ticket_search_model, validate=True)
+    @jwt_required
     def post(self):
         try:
             tickets_service = TicketsService()
