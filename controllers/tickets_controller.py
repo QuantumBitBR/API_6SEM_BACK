@@ -112,8 +112,18 @@ class TicketsByStatus(Resource):
         
 @tickets_ns.route('/tickets-by-department')
 class TicketsByDepartment(Resource):
+    @cache.cached(timeout=86400)
+    @jwt_required
     def get(self):
         """Retorna a contagem de tickets por departamento."""
         tickets_service = TicketsService()
         result = tickets_service.get_tickets_by_department_count()
+        return {"data": result}
+    
+@tickets_ns.route('/tickets-by-slaplan')
+class TicketsBySLAPlanPercentage(Resource):
+    def get(self):
+        """Retorna o percentual de tickets por SLAPlan."""
+        tickets_service = TicketsService()
+        result = tickets_service.get_tickets_by_slaplan()
         return {"data": result}
