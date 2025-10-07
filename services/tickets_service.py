@@ -70,6 +70,22 @@ class TicketsService:
             })
         
         return tickets_by_status
+
+    def get_tickets_by_priority(self):
+        """
+        Lógica de negócio para obter e formatar a contagem de tickets por prioridade.
+        """
+        results = self.tickets_repository.get_by_priority()
+        
+        tickets_by_priority = []
+        for row in results:
+            name, ticket_count = row
+            tickets_by_priority.append({
+                'name': name,
+                'ticket_count': ticket_count
+            })
+        
+        return tickets_by_priority
     
     def get_by_id(self, id: int):
         try:

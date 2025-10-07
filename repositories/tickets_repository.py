@@ -140,6 +140,21 @@ class TicketsRepository:
             row.pop('keyencrypt', None)
 
             return row
+                
+    def get_by_priority(self):
+        """
+        Executa a consulta no banco de dados para contar os tickets por prioridade.
+        """
+        sql_query = """
+            select p.name, count(p.name) as total  from tickets t
+            inner join priorities p
+            on t.priorityid = p.priorityid
+            group by p.name;
+        """
+
+        with get_cursor() as cur:
+            cur.execute(sql_query)
+            return cur.fetchall()
         
     def get_tickets_by_department(self):
         """

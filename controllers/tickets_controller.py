@@ -95,6 +95,21 @@ class TicketsByKeyWord(Resource):
         except Exception as e:
             return {'error': str(e)}, 500
         
+@tickets_ns.route('/tickets-by-priority')
+class TicketsByStatus(Resource):
+    @jwt_required
+    @cache.cached(timeout=86400)
+    def get(self):
+        """
+        Retorna a quantidade de tickets por prioridade.
+        """
+        try:
+            tickets_service = TicketsService()
+            tickets_by_status = tickets_service.get_tickets_by_priority()
+            return {'data': tickets_by_status}, 200
+        except Exception as e:
+            return {'error': str(e)}, 500
+        
 @tickets_ns.route('/tickets-by-department')
 class TicketsByDepartment(Resource):
     def get(self):
