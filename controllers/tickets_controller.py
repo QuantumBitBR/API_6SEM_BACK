@@ -94,3 +94,11 @@ class TicketsByKeyWord(Resource):
             return tickets_service.get_tickets_by_key_word(key_word)
         except Exception as e:
             return {'error': str(e)}, 500
+        
+@tickets_ns.route('/tickets-by-department')
+class TicketsByDepartment(Resource):
+    def get(self):
+        """Retorna a contagem de tickets por departamento."""
+        tickets_service = TicketsService()
+        result = tickets_service.get_tickets_by_department_count()
+        return {"data": result}

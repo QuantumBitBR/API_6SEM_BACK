@@ -95,3 +95,14 @@ class TicketsService:
             return {
                 'error': 'erro ao tentar buscar os dados'
             }, 500
+        
+    def get_tickets_by_department_count(self):
+        """Busca e formata a contagem de tickets por departamento."""
+        tickets_by_department = self.tickets_repository.get_tickets_by_department()
+        return [
+            {
+                "department_name": department,
+                "ticket_count": count
+            }
+            for department, count in tickets_by_department
+        ]

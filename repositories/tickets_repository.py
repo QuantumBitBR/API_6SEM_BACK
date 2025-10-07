@@ -140,5 +140,29 @@ class TicketsRepository:
             row.pop('keyencrypt', None)
 
             return row
+        
+    def get_tickets_by_department(self):
+        """
+        Executa a consulta no banco de dados para contar os tickets por departamento,
+        fazendo JOINs indiretos: tickets -> agents -> departments.
+        Retorna uma lista de tuplas.
+        """
+        sql_query = """
+            SELECT
+                d.name,
+                COUNT(t.ticketid) AS ticket_count
+            FROM
+                tickets t
+            JOIN
+                agents a ON t.assignedagentid = a.agentid
+            JOIN
+                departments d ON a.departmentid = d.departmentid
+            GROUP BY
+                d.name;
+        """
+        
+        with get_cursor() as cur:
+            cur.execute(sql_query)
+            return cur.fetchall()
 
 
