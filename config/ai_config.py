@@ -6,12 +6,12 @@ class ProphetModel:
         with open('../model_AI/prophet_model.pkl', 'rb') as f:
             self.model = pickle.load(f)
     
-    def predict_future(self, months: int = 3, freq: str = 'ME', start_date: str = None) -> pd.DataFrame:
+    def predict_future(self, period: int = 3, freq: str = 'ME', start_date: str = None) -> pd.DataFrame:
         valid_freqs = ['ME', 'D', 'Y']
         if freq not in valid_freqs:
             freq = 'ME'
 
-        future = self.model.make_future_dataframe(periods=months, freq=freq)
+        future = self.model.make_future_dataframe(periods=period, freq=freq)
         forecast = self.model.predict(future)
         last_date = self.model.history['ds'].max()
 
@@ -27,5 +27,5 @@ class ProphetModel:
 
 pm = ProphetModel()
 
-forecast = pm.predict_future(months=5, freq='Y', start_date='2018-12-01')
+forecast = pm.predict_future(period=5, freq='Y', start_date='2018-12-01')
 print(forecast)
