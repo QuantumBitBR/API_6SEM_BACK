@@ -21,3 +21,13 @@ class CompaniesRepository:
         with get_cursor() as cur:
             cur.execute(sql_query)
             return cur.fetchall()
+    
+    def get_all_companies(self):
+        """
+        Busca todas as empresas.
+        """
+        sql_query = "SELECT * FROM companies;"
+        
+        with get_cursor() as cur:
+            cur.execute(sql_query)
+            return cur.fetchall()
