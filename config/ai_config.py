@@ -1,12 +1,14 @@
 import pickle
 import pandas as pd
+import os
 
 class ProphetModel:
     def __init__(self):
-        with open('../model_AI/prophet_model.pkl', 'rb') as f:
+        model_path = os.path.join(os.path.dirname(__file__), '../model_AI/prophet_model.pkl')
+        with open(model_path, 'rb') as f:
             self.model = pickle.load(f)
     
-    def predict_future(self, period: int = 3, freq: str = 'ME', start_date: str = None) -> pd.DataFrame:
+    def predict_future(self, period: int = 3, freq: str = 'ME', start_date: str = '2018-01-01') -> pd.DataFrame:
         valid_freqs = ['ME', 'D', 'Y']
         if freq not in valid_freqs:
             freq = 'ME'
@@ -24,8 +26,3 @@ class ProphetModel:
 
         return forecast[['ds', 'year', 'yhat','is_future']]
 
-
-pm = ProphetModel()
-
-forecast = pm.predict_future(period=5, freq='Y', start_date='2018-12-01')
-print(forecast)
