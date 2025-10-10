@@ -182,6 +182,7 @@ class TicketsRepository:
         
 
     def get_tickets_by_slaplan(self):
+        # mudar para que a porcentagem so retorne dois numeros depois da virgula
         """
         Executa a consulta no banco de dados para contar os tickets por SLAPlan.
         Retorna uma lista de tuplas (slaplan_name, ticket_count).
@@ -194,7 +195,12 @@ class TicketsRepository:
             )
             SELECT
                 sp.name,
-                CAST(COUNT(sp.name) AS REAL) * 100 / (SELECT total_count FROM total_tickets) AS percentage
+                CAST(
+                    ROUND(
+                        CAST(COUNT(sp.name) AS NUMERIC) * 100 / (SELECT total_count FROM total_tickets),
+                        2
+                    ) AS DOUBLE PRECISION
+                ) AS percentage
             FROM
                 tickets t
             JOIN

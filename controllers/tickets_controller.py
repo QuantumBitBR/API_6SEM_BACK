@@ -122,6 +122,8 @@ class TicketsByDepartment(Resource):
     
 @tickets_ns.route('/tickets-by-slaplan')
 class TicketsBySLAPlanPercentage(Resource):
+    @cache.cached(timeout=86400)
+    @jwt_required
     def get(self):
         """Retorna o percentual de tickets por SLAPlan."""
         tickets_service = TicketsService()
