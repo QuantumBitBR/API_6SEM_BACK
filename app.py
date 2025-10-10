@@ -7,6 +7,7 @@ from controllers.auth_controller import auth_ns
 from controllers.user_controller import users_ns
 from config.extensions import db, ma, cache
 from controllers.companies_controller import companies_ns
+from controllers.products_controller import products_ns
 from controllers.privacy_policy_controller import privacy_policy_ns
 from controllers.user_controller import users_ns
 from flask_caching import Cache
@@ -37,6 +38,7 @@ cache.init_app(app)
 api.add_namespace(companies_ns, '/companies')
 api.add_namespace(privacy_policy_ns, '/privacy')
 api.add_namespace(users_ns, '/users-tickets')
+api.add_namespace(products_ns, '/products')
 
 
 if __name__ == "__main__":
