@@ -10,6 +10,9 @@ from controllers.companies_controller import companies_ns
 from controllers.privacy_policy_controller import privacy_policy_ns
 from controllers.user_controller import users_ns
 from flask_caching import Cache
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 api = Api(app, version="1.0", title="Help.AI!", description="Help.AI!")
