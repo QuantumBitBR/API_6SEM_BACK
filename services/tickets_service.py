@@ -122,3 +122,20 @@ class TicketsService:
             }
             for department, count in tickets_by_department
         ]
+    
+    def get_tickets_by_slaplan(self):
+        """
+        Busca a contagem de tickets por SLAPlan, calcula a porcentagem
+        e retorna os resultados formatados.
+        """
+        result = self.tickets_repository.get_tickets_by_slaplan()
+        
+        tickets_by_slaplan = []
+        for row in result:
+            slaplan_name, percentage = row
+            tickets_by_slaplan.append({
+                'slaplan_name': slaplan_name,
+                'percentage': percentage
+            })
+        
+        return result

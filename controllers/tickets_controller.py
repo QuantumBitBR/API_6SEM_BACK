@@ -17,8 +17,8 @@ ticket_search_model = tickets_ns.model('TicketSearch', {
 @tickets_ns.route('/tickets-by-company')
 
 class TicketsByCompany(Resource):
-    @cache.cached(timeout=86400)
     @jwt_required
+    @cache.cached(timeout=86400)
     def get(self):
         """
         Retorna a quantidade de tickets por empresa.
@@ -35,8 +35,8 @@ class TicketsByCompany(Resource):
 
 @tickets_ns.route('/tickets-by-product')
 class TicketsByProduct(Resource):
-    @cache.cached(timeout=86400)
     @jwt_required
+    @cache.cached(timeout=86400)
     def get(self):
         """
         Retorna a quantidade de tickets por produto.
@@ -51,9 +51,8 @@ class TicketsByProduct(Resource):
 
 @tickets_ns.route('/tickets-by-category')
 class TicketsByCategory(Resource):
-    
-    @cache.cached(timeout=86400)
     @jwt_required
+    @cache.cached(timeout=86400)
     def get(self):
         """
         Retorna a quantidade de tickets por categoria.
@@ -68,8 +67,8 @@ class TicketsByCategory(Resource):
 
 @tickets_ns.route('/tickets-by-status')
 class TicketsByStatus(Resource):
-    @cache.cached(timeout=86400)
     @jwt_required
+    @cache.cached(timeout=86400)
     def get(self):
         """
         Retorna a quantidade de tickets por status.
@@ -112,8 +111,20 @@ class TicketsByStatus(Resource):
         
 @tickets_ns.route('/tickets-by-department')
 class TicketsByDepartment(Resource):
+    @jwt_required
+    @cache.cached(timeout=86400)
     def get(self):
         """Retorna a contagem de tickets por departamento."""
         tickets_service = TicketsService()
         result = tickets_service.get_tickets_by_department_count()
+        return {"data": result}
+    
+@tickets_ns.route('/tickets-by-slaplan')
+class TicketsBySLAPlanPercentage(Resource):
+    @jwt_required
+    @cache.cached(timeout=86400)
+    def get(self):
+        """Retorna o percentual de tickets por SLAPlan."""
+        tickets_service = TicketsService()
+        result = tickets_service.get_tickets_by_slaplan()
         return {"data": result}

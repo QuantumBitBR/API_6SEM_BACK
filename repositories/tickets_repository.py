@@ -179,5 +179,35 @@ class TicketsRepository:
         with get_cursor() as cur:
             cur.execute(sql_query)
             return cur.fetchall()
+        
 
-
+    def get_tickets_by_slaplan(self):
+        # mudar para que a porcentagem so retorne dois numeros depois da virgula
+        """
+        Executa a consulta no banco de dados para contar os tickets por SLAPlan.
+        Retorna uma lista de tuplas (slaplan_name, ticket_count).
+        """
+        sql_query = """
+            WITH total_tickets AS (
+                SELECT COUNT(ticketid) AS total_count
+                FROM tickets
+                WHERE slaplanid IS NOT NULL
+            )
+            SELECT
+                sp.name,
+                CAST(
+                    ROUND(
+                        CAST(COUNT(sp.name) AS NUMERIC) * 100 / (SELECT total_count FROM total_tickets),
+                        2
+                    ) AS DOUBLE PRECISION
+                ) AS percentage
+            FROM
+                tickets t
+            JOIN
+                sla_plans sp ON t.slaplanid = sp.slaplanid
+            GROUP BY
+                sp.name;
+        """
+        with get_cursor() as cur:
+            cur.execute(sql_query)
+            return cur.fetchall()
