@@ -11,7 +11,7 @@ class TicketsRepository:
         product_id: Optional[List[int]] = None, 
         category_id: Optional[List[int]] = None, 
         priority_id: Optional[List[int]] = None, 
-        start_date: Optional[str] = None,
+        createdat: Optional[str] = None,
         end_date: Optional[str] = None
     ) -> Tuple[str, List[Any]]:
         """
@@ -34,12 +34,12 @@ class TicketsRepository:
                 conditions.append(f"t.{col_suffix} IN %s")
                 params.append(tuple(ids))
                 
-        if start_date is not None:
-            conditions.append("t.created_at >= %s")
-            params.append(start_date)
+        if createdat is not None:
+            conditions.append("t.createdat >= %s")
+            params.append(createdat)
             
         if end_date is not None:
-            conditions.append("t.created_at <= %s")
+            conditions.append("t.createdat <= %s")
             params.append(end_date)
 
         sql_where = " WHERE " + " AND ".join(conditions) if conditions else ""
@@ -53,7 +53,7 @@ class TicketsRepository:
         product_id: Optional[int] = None,
         category_id: Optional[int] = None,
         priority_id: Optional[int] = None,
-        start_date: Optional[str] = None,
+        createdat: Optional[str] = None,
         end_date: Optional[str] = None
     ) -> List[Any]:
         """
@@ -82,7 +82,7 @@ class TicketsRepository:
             product_id=product_id,
             category_id=category_id,
             priority_id=priority_id,
-            start_date=start_date,
+            createdat=createdat,
             end_date=end_date
         )
         

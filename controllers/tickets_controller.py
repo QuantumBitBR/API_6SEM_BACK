@@ -21,7 +21,7 @@ filter_parser.add_argument('company_id', type=int, action='split', help='IDs das
 filter_parser.add_argument('product_id', type=int, action='split', help='IDs dos produtos (separados por vírgula)', required=False)
 filter_parser.add_argument('category_id', type=int, action='split', help='IDs das categorias (separados por vírgula)', required=False)
 filter_parser.add_argument('priority_id', type=int, action='split', help='IDs das prioridades (separados por vírgula)', required=False)
-filter_parser.add_argument('start_date', type=str, help='Data de início do período (YYYY-MM-DD)', required=False)
+filter_parser.add_argument('createdat', type=str, help='Data de início do período (YYYY-MM-DD)', required=False)
 filter_parser.add_argument('end_date', type=str, help='Data final do período (YYYY-MM-DD)', required=False)
 
 
@@ -43,7 +43,7 @@ class TicketsByCompany(Resource):
                 product_id=args.get('product_id'),
                 category_id=args.get('category_id'),
                 priority_id=args.get('priority_id'),
-                start_date=args.get('start_date'),
+                createdat=args.get('createdat'),
                 end_date=args.get('end_date')
             )
             
