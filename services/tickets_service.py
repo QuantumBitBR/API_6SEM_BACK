@@ -1,17 +1,48 @@
 from repositories.tickets_repository import TicketsRepository
 from services.indexer_service import IndexService
 from utils.encryptor import decrypt_data
+from typing import Optional, List, Dict, Any, Union
 
 class TicketsService:
     def __init__(self):
         self.tickets_repository = TicketsRepository()
         self.indexer = IndexService()
 
-    def get_tickets_by_company_count(self):
-        """
-        Lógica de negócio para obter e formatar a contagem de tickets por empresa.
-        """
-        results = self.tickets_repository.get_tickets_by_company()
+    def _get_filter_kwargs(
+        self,
+        company_id: Optional[List[int]] = None, 
+        product_id: Optional[List[int]] = None, 
+        category_id: Optional[List[int]] = None, 
+        priority_id: Optional[List[int]] = None, 
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Agrupa os parâmetros de filtro em um dicionário para fácil repasse."""
+        return {
+            'company_id': company_id,
+            'product_id': product_id,
+            'category_id': category_id,
+            'priority_id': priority_id,
+            'start_date': start_date,
+            'end_date': end_date
+        }
+
+
+    def get_tickets_by_company_count(
+        self,
+        company_id: Optional[int] = None,
+        product_id: Optional[int] = None,
+        category_id: Optional[int] = None,
+        priority_id: Optional[int] = None,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        
+        filter_kwargs = self._get_filter_kwargs(
+            company_id, product_id, category_id, priority_id, start_date, end_date
+        )
+
+        results = self.tickets_repository.get_tickets_by_company(**filter_kwargs)
         
         tickets_by_company = []
         for row in results:

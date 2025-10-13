@@ -1,13 +1,66 @@
 from config.db_connection import get_cursor
 from utils.encryptor import decrypt_data
 from datetime import datetime
+from typing import Optional, List, Tuple, Any, Union, Dict
 
 class TicketsRepository:
-    def get_tickets_by_company(self):
+
+    def _build_where_clause_and_params(
+        self,
+        company_id: Optional[List[int]] = None, 
+        product_id: Optional[List[int]] = None, 
+        category_id: Optional[List[int]] = None, 
+        priority_id: Optional[List[int]] = None, 
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> Tuple[str, List[Any]]:
         """
-        Executa a consulta no banco de dados para contar os tickets por empresa.
+        Constrói a cláusula WHERE e a lista de parâmetros para a consulta SQL.
+        Ajustado para usar 'IN' para listas de IDs.
         """
-        sql_query = """
+        conditions = []
+        params = []
+        
+        # Mapeamento para simplificar a lógica de 'IN'
+        id_filters = {
+            'companyid': company_id,
+            'productid': product_id,
+            'categoryid': category_id,
+            'priorityid': priority_id,
+        }
+        
+        for col_suffix, ids in id_filters.items():
+            if ids is not None and ids:
+                conditions.append(f"t.{col_suffix} IN %s")
+                params.append(tuple(ids))
+                
+        if start_date is not None:
+            conditions.append("t.created_at >= %s")
+            params.append(start_date)
+            
+        if end_date is not None:
+            conditions.append("t.created_at <= %s")
+            params.append(end_date)
+
+        sql_where = " WHERE " + " AND ".join(conditions) if conditions else ""
+        
+        return sql_where, params
+    
+
+    def get_tickets_by_company(
+        self,
+        company_id: Optional[int] = None,
+        product_id: Optional[int] = None,
+        category_id: Optional[int] = None,
+        priority_id: Optional[int] = None,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Any]:
+        """
+        Executa a consulta no banco de dados para contar os tickets por empresa,
+        aplicando filtros opcionais.
+        """
+        sql_base = """
             SELECT 
                 c.name,
                 COUNT(t.ticketid) AS ticket_count
@@ -15,12 +68,28 @@ class TicketsRepository:
                 tickets t
             JOIN 
                 companies c ON t.companyid = c.companyid
-            GROUP BY 
-                c.name;
+            JOIN
+                products p ON t.productid = p.productid
+            JOIN
+                categories ca ON t.categoryid = ca.categoryid
+            JOIN
+                priorities prio ON t.priorityid = prio.priorityid
         """
+        sql_group_by = " GROUP BY c.name;"
+
+        sql_where, params = self._build_where_clause_and_params(
+            company_id=company_id,
+            product_id=product_id,
+            category_id=category_id,
+            priority_id=priority_id,
+            start_date=start_date,
+            end_date=end_date
+        )
+        
+        sql_query = sql_base + sql_where + sql_group_by
         
         with get_cursor() as cur:
-            cur.execute(sql_query)
+            cur.execute(sql_query, tuple(params))
             return cur.fetchall()
         
     def get_tickets_by_product(self):
