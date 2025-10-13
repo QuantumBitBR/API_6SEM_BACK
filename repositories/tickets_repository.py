@@ -63,7 +63,7 @@ class TicketsRepository:
             cur.execute(sql_query)
             return cur.fetchall()
 
-    def get_tickets_by_status(self):
+    def get_tickets_by_status(self, start_date=None, end_date=None):
         """
         Executa a consulta no banco de dados para contar os tickets por status.
         """
@@ -71,6 +71,8 @@ class TicketsRepository:
             WITH total_tickets AS (
                 SELECT COUNT(DISTINCT ticketid) AS total_count
                 FROM ticketstatushistory
+                WHERE (%s IS NULL OR DATE(createdat) >= %s)
+                AND (%s IS NULL OR DATE(createdat) <= %s)
             )
             SELECT
                 s.name,
@@ -83,14 +85,22 @@ class TicketsRepository:
                 tsh.historyid IN (
                     SELECT MAX(historyid)
                     FROM ticketstatushistory
+                    WHERE (%s IS NULL OR DATE(createdat) >= %s)
+                    AND (%s IS NULL OR DATE(createdat) <= %s)
                     GROUP BY ticketid
                 )
+                AND (%s IS NULL OR DATE(tsh.createdat) >= %s)
+                AND (%s IS NULL OR DATE(tsh.createdat) <= %s)
             GROUP BY
                 s.name;
         """
         
         with get_cursor() as cur:
-            cur.execute(sql_query)
+            cur.execute(sql_query, (
+                start_date, start_date, end_date, end_date,  # Para o total_tickets
+                start_date, start_date, end_date, end_date,  # Para o subquery
+                start_date, start_date, end_date, end_date   # Para o filtro principal
+            ))
             return cur.fetchall()
         
     def get_by_id(self, id: int):

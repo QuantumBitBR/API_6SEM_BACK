@@ -55,18 +55,19 @@ class TicketsService:
             
         return tickets_by_category
     
-    def get_tickets_by_status_count(self):
+    def get_tickets_by_status_count(self, start_date: str = None, end_date: str = None):
         """
         Lógica de negócio para obter e formatar a contagem de tickets por status.
         """
-        results = self.tickets_repository.get_tickets_by_status()
+        start_date_obj, end_date_obj = self._format_date_range(start_date, end_date)
+        results = self.tickets_repository.get_tickets_by_status(start_date_obj, end_date_obj)
         
         tickets_by_status = []
         for row in results:
-            status_name, ticket_count = row
+            status_name, percentage = row
             tickets_by_status.append({
                 'status_name': status_name,
-                'ticket_count': ticket_count
+                'ticket_count': percentage  # Mantendo como percentage para compatibilidade
             })
         
         return tickets_by_status
@@ -91,7 +92,7 @@ class TicketsService:
         try:
             return self.tickets_repository.get_by_id(id)
         except Exception as e:
-            raise Exception(str(e))
+            raise ValueError(str(e))
         
     def get_tickets_by_key_word(self, word : str):
         try:

@@ -1,17 +1,32 @@
-from flask_restx import Namespace, Resource, fields
+from flask_restx import Namespace, Resource, fields, reqparse
 from flask import request
 from services.tickets_service import TicketsService
 from config.auth import jwt_required
 
 from config.extensions import cache
 import time 
+
 tickets_ns = Namespace(
     'tickets', 
     description='Endpoints relacionados a tickets'
 )
+
 ticket_search_model = tickets_ns.model('TicketSearch', {
     'keyword': fields.String(required=True, description='Palavra-chave para buscar nos tickets')
 })
+
+# Definir o parser para os parâmetros de data
+date_query_params = reqparse.RequestParser()
+date_query_params.add_argument('start_date', 
+                              type=str, 
+                              required=False, 
+                              help='Data inicial no formato YYYY-MM-DD (ex: 2024-01-01)',
+                              location='args')
+date_query_params.add_argument('end_date', 
+                              type=str, 
+                              required=False, 
+                              help='Data final no formato YYYY-MM-DD (ex: 2024-12-31)',
+                              location='args')
 
 
 @tickets_ns.route('/tickets-by-company')
@@ -68,15 +83,21 @@ class TicketsByCategory(Resource):
 @tickets_ns.route('/tickets-by-status')
 class TicketsByStatus(Resource):
     @jwt_required
-    @cache.cached(timeout=86400)
+    @tickets_ns.expect(date_query_params)
     def get(self):
         """
         Retorna a quantidade de tickets por status.
         """
         try:
+            args = date_query_params.parse_args()
+            start_date = args.get('start_date')
+            end_date = args.get('end_date')
+            
             tickets_service = TicketsService()
-            tickets_by_status = tickets_service.get_tickets_by_status_count()
+            tickets_by_status = tickets_service.get_tickets_by_status_count(start_date, end_date)
             return {'data': tickets_by_status}, 200
+        except ValueError as e:
+            return {'error': str(e)}, 400
         except Exception as e:
             return {'error': str(e)}, 500
         
