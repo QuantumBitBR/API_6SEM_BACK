@@ -59,4 +59,3 @@ class GetTendencia(Resource):
             return {"data": data.to_dict(orient="records")}, 200
         except Exception as error:
             return {"error": str(error)}, 500
-
