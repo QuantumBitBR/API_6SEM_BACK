@@ -19,13 +19,18 @@ class GetTendencia(Resource):
             'required': False
         },
         'freq': {
-            'description': 'Frequência da previsão (Y-year | ME - month | D - day)',
+            'description': 'Frequência da previsão (YE - year | ME - month | D - day)',
             'type': 'string',
             'required': False
         },
         'start_date': {
             'description': 'A partir de qual data gostaria de ver as previsões com os dados passados',
             'type': 'string',
+            'required': False
+        },
+        'product_id': {
+            'description': 'Id do Produto que deve ser filtrado',
+            'type': 'int',
             'required': False
         }
 
@@ -35,6 +40,7 @@ class GetTendencia(Resource):
             period = request.args.get("period", type=int)
             freq = request.args.get("freq", type=str)
             start_date = request.args.get("start_date", type=str)
+            id_model = request.args.get("id_model", type=int)
 
             model = ProphetModel()
             kwargs = {}
@@ -45,10 +51,11 @@ class GetTendencia(Resource):
                 kwargs['freq'] = freq
             if start_date is not None:
                 kwargs['start_date'] = start_date
+            if id_model is not None:
+                kwargs['id_model'] = id_model
 
             data = model.predict_future(**kwargs)
             data['ds'] = data['ds'].dt.strftime('%Y-%m-%d')
             return {"data": data.to_dict(orient="records")}, 200
         except Exception as error:
             return {"error": str(error)}, 500
-

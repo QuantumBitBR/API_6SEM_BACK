@@ -3,13 +3,17 @@ import pandas as pd
 import os
 
 class ProphetModel:
-    def __init__(self):
-        model_path = os.path.join(os.path.dirname(__file__), '../model_AI/prophet_model.pkl')
+    def __init__(self, id_model: int = 0):
+        if(id_model == 0 or id_model > 18):
+            model_path = os.path.join(os.path.dirname(__file__), '../model_AI/prophet_model.pkl')
+        else:
+            model_path = os.path.join(os.path.dirname(__file__), f'../model_AI/{id_model}_model.pkl')
+
         with open(model_path, 'rb') as f:
             self.model = pickle.load(f)
     
     def predict_future(self, period: int = 3, freq: str = 'ME', start_date: str = '2018-01-01') -> pd.DataFrame:
-        valid_freqs = ['ME', 'D', 'Y']
+        valid_freqs = ['ME', 'D', 'YE']
         if freq not in valid_freqs:
             freq = 'ME'
 

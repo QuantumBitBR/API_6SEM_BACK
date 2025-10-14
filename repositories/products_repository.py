@@ -17,5 +17,14 @@ class ProductsRepository:
         with get_cursor() as cur:
             cur.execute(sql_query)
             return cur.fetchall()
+        
+    def get_product_ia(self,):
+        sql = """
+            SELECT * FROM product_ai
+        """
+
+        with get_cursor() as cur:
+            cur.execute(sql)
+            return cur.fetchall()
 
 
