@@ -18,3 +18,18 @@ class ProductsService:
             }
             products.append(product)
         return products
+
+
+    def get_all_products_ia(self):
+        """
+        Retorna todos os produtos.
+        """
+        results = self.products_repository.get_product_ia()
+        products = []
+        for row in results:
+            product = {
+                "ProductID": row[0],
+                "ProductName": row[1]
+            }
+            products.append(product)
+        return products

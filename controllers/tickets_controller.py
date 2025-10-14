@@ -29,22 +29,45 @@ date_query_params.add_argument('end_date',
                               location='args')
 
 
-@tickets_ns.route('/tickets-by-company')
+filter_parser = reqparse.RequestParser()
 
+filter_parser.add_argument('company_id', type=int, action='split', help='IDs das empresas (separados por vírgula)', required=False)
+filter_parser.add_argument('product_id', type=int, action='split', help='IDs dos produtos (separados por vírgula)', required=False)
+filter_parser.add_argument('category_id', type=int, action='split', help='IDs das categorias (separados por vírgula)', required=False)
+filter_parser.add_argument('priority_id', type=int, action='split', help='IDs das prioridades (separados por vírgula)', required=False)
+filter_parser.add_argument('createdat', type=str, help='Data de início do período (YYYY-MM-DD)', required=False)
+filter_parser.add_argument('end_date', type=str, help='Data final do período (YYYY-MM-DD)', required=False)
+
+
+@tickets_ns.route('/tickets-by-company')
 class TicketsByCompany(Resource):
-    @jwt_required
-    @cache.cached(timeout=86400)
+    @tickets_ns.expect(filter_parser) 
     def get(self):
         """
-        Retorna a quantidade de tickets por empresa.
+        Retorna a quantidade de tickets por empresa, com filtros de ID e período.
         """
         try:
+            args = filter_parser.parse_args()
+            
             tickets_service = TicketsService()
-            tickets_by_company = tickets_service.get_tickets_by_company_count()
+            
+            
+            tickets_by_company = tickets_service.get_tickets_by_company_count(
+                company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date')
+            )
             
             return {'data': tickets_by_company}, 200
 
         except Exception as e:
+            return {'error': str(e)}, 500
+
+        except Exception as e:
+            # Lidar com erro
             return {'error': str(e)}, 500
         
 
@@ -148,4 +171,15 @@ class TicketsBySLAPlanPercentage(Resource):
         """Retorna o percentual de tickets por SLAPlan."""
         tickets_service = TicketsService()
         result = tickets_service.get_tickets_by_slaplan()
+        return {"data": result}
+
+
+@tickets_ns.route('/categories')
+class TicketCategories(Resource):
+    @jwt_required
+    @cache.cached(timeout=86400)
+    def get(self):
+        """Retorna todas as categorias de tickets."""
+        tickets_service = TicketsService()
+        result = tickets_service.get_all_categories()
         return {"data": result}
