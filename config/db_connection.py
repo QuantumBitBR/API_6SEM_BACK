@@ -38,5 +38,8 @@ def get_cursor_db_keys():
         with conn.cursor() as cur:
             yield cur  
         conn.commit()
+    except Exception as e:
+        print("Erro ao conectar ao banco de chaves:", e)
+        raise e
     finally:
         conn.close()

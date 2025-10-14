@@ -1,4 +1,4 @@
-from config.db_connection import get_cursor
+from config.db_connection import get_cursor, get_cursor_db_keys
 from utils.encryptor import decrypt_data
 from datetime import datetime
 from typing import Optional, List, Tuple, Any, Union, Dict
@@ -175,8 +175,7 @@ class TicketsRepository:
                 prio.name AS priority_name, 
                 s.name AS status_name, 
                 t.channel, 
-                t.device, 
-                e.keyencrypt
+                t.device 
             FROM tickets t
             INNER JOIN companies c ON c.companyid = t.companyid
             INNER JOIN priorities prio ON prio.priorityid = t.priorityid
@@ -184,16 +183,21 @@ class TicketsRepository:
             INNER JOIN statuses s ON s.statusid = t.currentstatusid 
             INNER JOIN categories cat ON cat.categoryid = t.categoryid
             INNER JOIN subcategories s2 ON s2.subcategoryid = t.subcategoryid 
-            INNER JOIN encrypt_ticket e ON e.ticketid = t.ticketid
             WHERE t.ticketid = %s;
         """
-
+        key = None
+        if id:
+            with get_cursor_db_keys() as cur:
+                cur.execute("SELECT keyencrypt FROM encrypt_ticket WHERE ticketid = %s;", (int(id),))
+                key = cur.fetchone()
+                key = key[0].tobytes().decode('utf-8')
+        
         with get_cursor() as cur:
             cur.execute(sql_query, (int(id),))
             row = cur.fetchone()
             if not row:
                 raise ValueError(f"Id {id} não encontrado!")
-
+                        
             if isinstance(row, tuple):
                 colnames = [desc[0] for desc in cur.description]
                 row = dict(zip(colnames, row))
@@ -202,12 +206,9 @@ class TicketsRepository:
                 if isinstance(v, memoryview):
                     row[k] = v.tobytes().decode('utf-8')
 
-            key = row['keyencrypt']
             row['title'] = decrypt_data(key, row['title'])
             row['description'] = decrypt_data(key, row['description'])
-
-            row.pop('keyencrypt', None)
-
+            
             return row
                 
     def get_by_priority(self):
