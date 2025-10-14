@@ -54,12 +54,25 @@ class TicketsService:
             
         return tickets_by_company
 
-    def get_tickets_by_product_count(self):
+    def get_tickets_by_product_count(
+        self,
+        company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
-        Lógica de negócio para obter e formatar a contagem de tickets por produto.
+        Lógica de negócio para obter e formatar a contagem de tickets por produto,
+        aplicando filtros.
         """
-        results = self.tickets_repository.get_tickets_by_product()
+        filter_kwargs = self._get_filter_kwargs(
+            company_id, product_id, category_id, priority_id, createdat, end_date
+        )
 
+        results = self.tickets_repository.get_tickets_by_product(**filter_kwargs)
+        
         tickets_by_product = []
         for row in results:
             product_name, ticket_count = row
@@ -86,19 +99,18 @@ class TicketsService:
             
         return tickets_by_category
     
-    def get_tickets_by_status_count(self, start_date: str = None, end_date: str = None):
+    def get_tickets_by_status_count(self):
         """
         Lógica de negócio para obter e formatar a contagem de tickets por status.
         """
-        start_date_obj, end_date_obj = self._format_date_range(start_date, end_date)
-        results = self.tickets_repository.get_tickets_by_status(start_date_obj, end_date_obj)
+        results = self.tickets_repository.get_tickets_by_status()
         
         tickets_by_status = []
         for row in results:
-            status_name, percentage = row
+            status_name, ticket_count = row
             tickets_by_status.append({
                 'status_name': status_name,
-                'ticket_count': percentage  # Mantendo como percentage para compatibilidade
+                'ticket_count': ticket_count
             })
         
         return tickets_by_status
