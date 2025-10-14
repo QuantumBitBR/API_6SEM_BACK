@@ -21,7 +21,7 @@ class TicketsRepository:
         conditions = []
         params = []
         
-        # Mapeamento para simplificar a lógica de 'IN'
+        
         id_filters = {
             'companyid': company_id,
             'productid': product_id,
@@ -132,89 +132,89 @@ class TicketsRepository:
             cur.execute(sql_query)
             return cur.fetchall()
 
-    def get_tickets_by_status(
-        self,
-        company_id: Optional[List[int]] = None,
-        product_id: Optional[List[int]] = None,
-        category_id: Optional[List[int]] = None,
-        priority_id: Optional[List[int]] = None,
-        createdat: Optional[str] = None,
-        end_date: Optional[str] = None
-    ) -> List[Any]:
-        """
-        Executa a consulta no banco de dados para contar os tickets por status,
-        aplicando filtros opcionais.
-        """
-        sql_base = """
-            WITH total_tickets AS (
-                SELECT COUNT(DISTINCT t.ticketid) AS total_count
-                FROM tickets t
-                JOIN companies c ON t.companyid = c.companyid
-                JOIN products p ON t.productid = p.productid
-                JOIN categories ca ON t.categoryid = ca.categoryid
-                JOIN priorities prio ON t.priorityid = prio.priorityid
-        """
-        
-        # Adiciona WHERE para o total_tickets se houver filtros
-        sql_where_total, params_total = self._build_where_clause_and_params(
-            company_id=company_id,
-            product_id=product_id,
-            category_id=category_id,
-            priority_id=priority_id,
-            createdat=createdat,
-            end_date=end_date
+def get_tickets_by_status(
+    self,
+    company_id: Optional[List[int]] = None,
+    product_id: Optional[List[int]] = None,
+    category_id: Optional[List[int]] = None,
+    priority_id: Optional[List[int]] = None,
+    createdat: Optional[str] = None,
+    end_date: Optional[str] = None
+) -> List[Any]:
+    """
+    Executa a consulta no banco de dados para contar os tickets por status,
+    aplicando filtros opcionais. Retorna porcentagens formatadas (ex: 20.45).
+    """
+    sql_base = """
+        WITH total_tickets AS (
+            SELECT COUNT(DISTINCT t.ticketid) AS total_count
+            FROM tickets t
+            JOIN companies c ON t.companyid = c.companyid
+            JOIN products p ON t.productid = p.productid
+            JOIN categories ca ON t.categoryid = ca.categoryid
+            JOIN priorities prio ON t.priorityid = prio.priorityid
+    """
+    
+    sql_where_total, params_total = self._build_where_clause_and_params(
+        company_id=company_id,
+        product_id=product_id,
+        category_id=category_id,
+        priority_id=priority_id,
+        createdat=createdat,
+        end_date=end_date
+    )
+    
+    sql_base += sql_where_total if sql_where_total else ""
+    sql_base += """
         )
-        
-        sql_base += sql_where_total if sql_where_total else ""
-        sql_base += """
+        SELECT
+            s.name,
+            ROUND(
+                CAST(COUNT(s.name) AS NUMERIC) * 100 / 
+                NULLIF((SELECT total_count FROM total_tickets), 0),
+                2
+            ) AS percentage
+        FROM
+            ticketstatushistory tsh
+        JOIN
+            statuses s ON tsh.tostatusid = s.statusid
+        JOIN
+            tickets t ON tsh.ticketid = t.ticketid
+        JOIN 
+            companies c ON t.companyid = c.companyid
+        JOIN
+            products p ON t.productid = p.productid
+        JOIN
+            categories ca ON t.categoryid = ca.categoryid
+        JOIN
+            priorities prio ON t.priorityid = prio.priorityid
+        WHERE
+            tsh.historyid IN (
+                SELECT MAX(historyid)
+                FROM ticketstatushistory
+                GROUP BY ticketid
             )
-            SELECT
-                s.name,
-                CAST(COUNT(s.name) AS REAL) * 100 / (SELECT total_count FROM total_tickets) AS percentage
-            FROM
-                ticketstatushistory tsh
-            JOIN
-                statuses s ON tsh.tostatusid = s.statusid
-            JOIN
-                tickets t ON tsh.ticketid = t.ticketid
-            JOIN 
-                companies c ON t.companyid = c.companyid
-            JOIN
-                products p ON t.productid = p.productid
-            JOIN
-                categories ca ON t.categoryid = ca.categoryid
-            JOIN
-                priorities prio ON t.priorityid = prio.priorityid
-            WHERE
-                tsh.historyid IN (
-                    SELECT MAX(historyid)
-                    FROM ticketstatushistory
-                    GROUP BY ticketid
-                )
-        """
-        
-        # Adiciona WHERE para a consulta principal
-        sql_where_main, params_main = self._build_where_clause_and_params(
-            company_id=company_id,
-            product_id=product_id,
-            category_id=category_id,
-            priority_id=priority_id,
-            createdat=createdat,
-            end_date=end_date
-        )
-        
-        # Remove "WHERE" do sql_where_main se existir e converte para "AND"
-        if sql_where_main:
-            sql_where_main = " AND " + sql_where_main[6:]  # Remove "WHERE " e adiciona "AND"
-        
-        sql_query = sql_base + sql_where_main + " GROUP BY s.name;"
-        
-        # Combina os parâmetros (total_tickets e consulta principal)
-        all_params = params_total + params_main
-        
-        with get_cursor() as cur:
-            cur.execute(sql_query, tuple(all_params))
-            return cur.fetchall()
+    """
+    
+    sql_where_main, params_main = self._build_where_clause_and_params(
+        company_id=company_id,
+        product_id=product_id,
+        category_id=category_id,
+        priority_id=priority_id,
+        createdat=createdat,
+        end_date=end_date
+    )
+    
+    if sql_where_main:
+        sql_where_main = " AND " + sql_where_main[6:]  
+    
+    sql_query = sql_base + sql_where_main + " GROUP BY s.name;"
+    
+    all_params = params_total + params_main
+    
+    with get_cursor() as cur:
+        cur.execute(sql_query, tuple(all_params))
+        return cur.fetchall()
         
     def get_by_id(self, id: int):
         sql_query = """
@@ -305,7 +305,7 @@ class TicketsRepository:
         
 
     def get_tickets_by_slaplan(self):
-        # mudar para que a porcentagem so retorne dois numeros depois da virgula
+        
         """
         Executa a consulta no banco de dados para contar os tickets por SLAPlan.
         Retorna uma lista de tuplas (slaplan_name, ticket_count).
