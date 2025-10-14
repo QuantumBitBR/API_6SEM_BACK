@@ -152,3 +152,14 @@ class TicketsBySLAPlanPercentage(Resource):
         tickets_service = TicketsService()
         result = tickets_service.get_tickets_by_slaplan()
         return {"data": result}
+
+
+@tickets_ns.route('/categories')
+class TicketCategories(Resource):
+    @jwt_required
+    @cache.cached(timeout=86400)
+    def get(self):
+        """Retorna todas as categorias de tickets."""
+        tickets_service = TicketsService()
+        result = tickets_service.get_all_categories()
+        return {"data": result}

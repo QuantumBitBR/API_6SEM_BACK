@@ -280,3 +280,20 @@ class TicketsRepository:
         with get_cursor() as cur:
             cur.execute(sql_query)
             return cur.fetchall()
+        
+    def get_all_categories(self):
+        """
+        Executa a consulta no banco de dados para buscar todas as categorias de tickets.
+        Retorna uma lista de tuplas (category_id, category_name).
+        """
+        sql_query = """
+            SELECT
+                categoryid,
+                name
+            FROM
+                categories;
+        """
+        
+        with get_cursor() as cur:
+            cur.execute(sql_query)
+            return cur.fetchall()
