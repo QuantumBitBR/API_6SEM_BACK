@@ -2,6 +2,7 @@ from config.db_connection import get_cursor
 from utils.encryptor import decrypt_data
 from datetime import datetime
 from typing import Optional, List, Tuple, Any, Union, Dict
+from decimal import Decimal
 
 class TicketsRepository:
 
@@ -20,7 +21,6 @@ class TicketsRepository:
         """
         conditions = []
         params = []
-        
         
         id_filters = {
             'companyid': company_id,
@@ -45,6 +45,31 @@ class TicketsRepository:
         sql_where = " WHERE " + " AND ".join(conditions) if conditions else ""
         
         return sql_where, params
+
+    def _convert_decimals(self, data):
+        """Converte objetos Decimal para float para serialização JSON."""
+        if isinstance(data, Decimal):
+            return float(data)
+        elif isinstance(data, dict):
+            return {k: self._convert_decimals(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [self._convert_decimals(item) for item in data]
+        elif isinstance(data, tuple):
+            return tuple(self._convert_decimals(item) for item in data)
+        else:
+            return data
+
+    def _process_query_result(self, results):
+        """Processa os resultados da query convertendo Decimals para float."""
+        processed_results = []
+        for row in results:
+            if isinstance(row, tuple):
+                # Converte tuple para lista, processa e volta para tuple
+                processed_row = tuple(self._convert_decimals(item) for item in row)
+                processed_results.append(processed_row)
+            else:
+                processed_results.append(self._convert_decimals(row))
+        return processed_results
     
 
     def get_tickets_by_company(
@@ -90,7 +115,8 @@ class TicketsRepository:
         
         with get_cursor() as cur:
             cur.execute(sql_query, tuple(params))
-            return cur.fetchall()
+            results = cur.fetchall()
+            return self._process_query_result(results)
         
     def get_tickets_by_product(self):
         """
@@ -110,7 +136,8 @@ class TicketsRepository:
 
         with get_cursor() as cur:
             cur.execute(sql_query)
-            return cur.fetchall()
+            results = cur.fetchall()
+            return self._process_query_result(results)
 
     def get_tickets_by_category(self):
         """
@@ -130,91 +157,80 @@ class TicketsRepository:
 
         with get_cursor() as cur:
             cur.execute(sql_query)
-            return cur.fetchall()
+            results = cur.fetchall()
+            return self._process_query_result(results)
 
-def get_tickets_by_status(
-    self,
-    company_id: Optional[List[int]] = None,
-    product_id: Optional[List[int]] = None,
-    category_id: Optional[List[int]] = None,
-    priority_id: Optional[List[int]] = None,
-    createdat: Optional[str] = None,
-    end_date: Optional[str] = None
-) -> List[Any]:
-    """
-    Executa a consulta no banco de dados para contar os tickets por status,
-    aplicando filtros opcionais. Retorna porcentagens formatadas (ex: 20.45).
-    """
-    sql_base = """
-        WITH total_tickets AS (
-            SELECT COUNT(DISTINCT t.ticketid) AS total_count
-            FROM tickets t
-            JOIN companies c ON t.companyid = c.companyid
-            JOIN products p ON t.productid = p.productid
-            JOIN categories ca ON t.categoryid = ca.categoryid
-            JOIN priorities prio ON t.priorityid = prio.priorityid
-    """
-    
-    sql_where_total, params_total = self._build_where_clause_and_params(
-        company_id=company_id,
-        product_id=product_id,
-        category_id=category_id,
-        priority_id=priority_id,
-        createdat=createdat,
-        end_date=end_date
-    )
-    
-    sql_base += sql_where_total if sql_where_total else ""
-    sql_base += """
+    def get_tickets_by_status(
+        self,
+        company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Any]:
+        """
+        Executa a consulta no banco de dados para contar os tickets por status,
+        aplicando filtros opcionais. Retorna porcentagens inteiras (ex: 12, 11).
+        """
+        sql_base = """
+            WITH total_tickets AS (
+                SELECT COUNT(t.ticketid) AS total_count
+                FROM tickets t
+                JOIN companies c ON t.companyid = c.companyid
+                JOIN products p ON t.productid = p.productid
+                JOIN categories ca ON t.categoryid = ca.categoryid
+                JOIN priorities prio ON t.priorityid = prio.priorityid
+        """
+        
+        sql_where_total, params_total = self._build_where_clause_and_params(
+            company_id=company_id,
+            product_id=product_id,
+            category_id=category_id,
+            priority_id=priority_id,
+            createdat=createdat,
+            end_date=end_date
         )
-        SELECT
-            s.name,
-            ROUND(
-                CAST(COUNT(s.name) AS NUMERIC) * 100 / 
-                NULLIF((SELECT total_count FROM total_tickets), 0),
-                2
-            ) AS percentage
-        FROM
-            ticketstatushistory tsh
-        JOIN
-            statuses s ON tsh.tostatusid = s.statusid
-        JOIN
-            tickets t ON tsh.ticketid = t.ticketid
-        JOIN 
-            companies c ON t.companyid = c.companyid
-        JOIN
-            products p ON t.productid = p.productid
-        JOIN
-            categories ca ON t.categoryid = ca.categoryid
-        JOIN
-            priorities prio ON t.priorityid = prio.priorityid
-        WHERE
-            tsh.historyid IN (
-                SELECT MAX(historyid)
-                FROM ticketstatushistory
-                GROUP BY ticketid
+        
+        sql_base += sql_where_total if sql_where_total else ""
+        sql_base += """
             )
-    """
-    
-    sql_where_main, params_main = self._build_where_clause_and_params(
-        company_id=company_id,
-        product_id=product_id,
-        category_id=category_id,
-        priority_id=priority_id,
-        createdat=createdat,
-        end_date=end_date
-    )
-    
-    if sql_where_main:
-        sql_where_main = " AND " + sql_where_main[6:]  
-    
-    sql_query = sql_base + sql_where_main + " GROUP BY s.name;"
-    
-    all_params = params_total + params_main
-    
-    with get_cursor() as cur:
-        cur.execute(sql_query, tuple(all_params))
-        return cur.fetchall()
+            SELECT
+                s.name,
+                ROUND(
+                    (COUNT(t.ticketid) * 100.0 / NULLIF((SELECT total_count FROM total_tickets), 0))
+                ) AS percentage
+            FROM
+                tickets t
+            JOIN
+                statuses s ON t.currentstatusid = s.statusid
+            JOIN 
+                companies c ON t.companyid = c.companyid
+            JOIN
+                products p ON t.productid = p.productid
+            JOIN
+                categories ca ON t.categoryid = ca.categoryid
+            JOIN
+                priorities prio ON t.priorityid = prio.priorityid
+        """
+        
+        sql_where_main, params_main = self._build_where_clause_and_params(
+            company_id=company_id,
+            product_id=product_id,
+            category_id=category_id,
+            priority_id=priority_id,
+            createdat=createdat,
+            end_date=end_date
+        )
+        
+        sql_query = sql_base + sql_where_main + " GROUP BY s.name ORDER BY percentage DESC;"
+        
+        all_params = params_total + params_main
+        
+        with get_cursor() as cur:
+            cur.execute(sql_query, tuple(all_params))
+            results = cur.fetchall()
+            return self._process_query_result(results)
         
     def get_by_id(self, id: int):
         sql_query = """
@@ -262,7 +278,7 @@ def get_tickets_by_status(
 
             row.pop('keyencrypt', None)
 
-            return row
+            return self._convert_decimals(row)
                 
     def get_by_priority(self):
         """
@@ -277,7 +293,8 @@ def get_tickets_by_status(
 
         with get_cursor() as cur:
             cur.execute(sql_query)
-            return cur.fetchall()
+            results = cur.fetchall()
+            return self._process_query_result(results)
         
     def get_tickets_by_department(self):
         """
@@ -301,11 +318,10 @@ def get_tickets_by_status(
         
         with get_cursor() as cur:
             cur.execute(sql_query)
-            return cur.fetchall()
+            results = cur.fetchall()
+            return self._process_query_result(results)
         
-
     def get_tickets_by_slaplan(self):
-        
         """
         Executa a consulta no banco de dados para contar os tickets por SLAPlan.
         Retorna uma lista de tuplas (slaplan_name, ticket_count).
@@ -333,4 +349,5 @@ def get_tickets_by_status(
         """
         with get_cursor() as cur:
             cur.execute(sql_query)
-            return cur.fetchall()
+            results = cur.fetchall()
+            return self._process_query_result(results)
