@@ -10,6 +10,7 @@ tickets_ns = Namespace(
     'tickets', 
     description='Endpoints relacionados a tickets'
 )
+
 ticket_search_model = tickets_ns.model('TicketSearch', {
     'keyword': fields.String(required=True, description='Palavra-chave para buscar nos tickets')
 })
@@ -27,6 +28,8 @@ filter_parser.add_argument('end_date', type=str, help='Data final do período (Y
 
 @tickets_ns.route('/tickets-by-company')
 class TicketsByCompany(Resource):
+    @jwt_required
+    @cache.cached(timeout=86400)
     @tickets_ns.expect(filter_parser) 
     def get(self):
         """
@@ -61,14 +64,26 @@ class TicketsByCompany(Resource):
 class TicketsByProduct(Resource):
     @jwt_required
     @cache.cached(timeout=86400)
+    @tickets_ns.expect(filter_parser) 
     def get(self):
         """
-        Retorna a quantidade de tickets por produto.
+        Retorna a quantidade de tickets por produto, com filtros.
         """
         try:
+            args = filter_parser.parse_args()
             tickets_service = TicketsService()
-            tickets_by_product = tickets_service.get_tickets_by_product_count()
-            return {'data': tickets_by_product}, 200
+        
+            results = tickets_service.get_tickets_by_product_count(
+                company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date')
+            )
+            
+            return {'data': results}, 200
+
         except Exception as e:
             return {'error': str(e)}, 500
 

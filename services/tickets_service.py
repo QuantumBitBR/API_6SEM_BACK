@@ -54,12 +54,25 @@ class TicketsService:
             
         return tickets_by_company
 
-    def get_tickets_by_product_count(self):
+    def get_tickets_by_product_count(
+        self,
+        company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
-        Lógica de negócio para obter e formatar a contagem de tickets por produto.
+        Lógica de negócio para obter e formatar a contagem de tickets por produto,
+        aplicando filtros.
         """
-        results = self.tickets_repository.get_tickets_by_product()
+        filter_kwargs = self._get_filter_kwargs(
+            company_id, product_id, category_id, priority_id, createdat, end_date
+        )
 
+        results = self.tickets_repository.get_tickets_by_product(**filter_kwargs)
+        
         tickets_by_product = []
         for row in results:
             product_name, ticket_count = row
@@ -122,7 +135,7 @@ class TicketsService:
         try:
             return self.tickets_repository.get_by_id(id)
         except Exception as e:
-            raise Exception(str(e))
+            raise ValueError(str(e))
         
     def get_tickets_by_key_word(self, word : str):
         try:
