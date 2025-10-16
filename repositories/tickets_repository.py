@@ -132,11 +132,20 @@ class TicketsRepository:
             cur.execute(sql_query, tuple(params))
             return cur.fetchall()
 
-    def get_tickets_by_category(self):
+    def get_tickets_by_category(
+        self,
+        company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Any]:
         """
-        Executa a consulta no banco de dados para contar os tickets por categoria.
+        Executa a consulta no banco de dados para contar os tickets por categoria,
+        aplicando filtros opcionais.
         """
-        sql_query = """
+        sql_base = """
             SELECT
                 ca.name,
                 COUNT(t.ticketid) AS ticket_count
@@ -144,12 +153,22 @@ class TicketsRepository:
                 tickets t
             JOIN
                 categories ca ON t.categoryid = ca.categoryid
-            GROUP BY
-                ca.name;
         """
-
+        sql_group_by = " GROUP BY ca.name;"
+        
+        sql_where, params = self._build_where_clause_and_params(
+            company_id=company_id,
+            product_id=product_id,
+            category_id=category_id,
+            priority_id=priority_id,
+            createdat=createdat,
+            end_date=end_date
+        )
+        
+        sql_query = sql_base + sql_where + sql_group_by
+        
         with get_cursor() as cur:
-            cur.execute(sql_query)
+            cur.execute(sql_query, tuple(params))
             return cur.fetchall()
 
     def get_tickets_by_status(self):

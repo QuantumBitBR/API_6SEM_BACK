@@ -83,12 +83,26 @@ class TicketsService:
             
         return tickets_by_product
     
-    def get_tickets_by_category_count(self):
+    def get_tickets_by_category_count(
+        self,
+        company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
-        Lógica de negócio para obter e formatar a contagem de tickets por categoria.
+        Lógica de negócio para obter e formatar a contagem de tickets por categoria,
+        aplicando filtros.
         """
-        results = self.tickets_repository.get_tickets_by_category()
+        
+        filter_kwargs = self._get_filter_kwargs(
+            company_id, product_id, category_id, priority_id, createdat, end_date
+        )
 
+        results = self.tickets_repository.get_tickets_by_category(**filter_kwargs)
+        
         tickets_by_category = []
         for row in results:
             category_name, ticket_count = row
