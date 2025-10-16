@@ -90,6 +90,8 @@ class TicketsByProduct(Resource):
 
 @tickets_ns.route('/tickets-by-category')
 class TicketsByCategory(Resource):
+    @jwt_required
+    @cache.cached(timeout=86400)
     @tickets_ns.expect(filter_parser) 
     def get(self):
         """
