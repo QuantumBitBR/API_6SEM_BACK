@@ -92,14 +92,27 @@ class TicketsByProduct(Resource):
 class TicketsByCategory(Resource):
     @jwt_required
     @cache.cached(timeout=86400)
+    @tickets_ns.expect(filter_parser) 
     def get(self):
         """
-        Retorna a quantidade de tickets por categoria.
+        Retorna a quantidade de tickets por categoria, com filtros.
         """
         try:
+            args = filter_parser.parse_args()
             tickets_service = TicketsService()
-            tickets_by_category = tickets_service.get_tickets_by_category_count()
-            return {'data': tickets_by_category}, 200
+            
+            # Chama o service, repassando todos os argumentos do parser
+            results = tickets_service.get_tickets_by_category_count(
+                company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date')
+            )
+            
+            return {'data': results}, 200
+
         except Exception as e:
             return {'error': str(e)}, 500
         
