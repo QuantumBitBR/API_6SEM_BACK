@@ -103,7 +103,8 @@ class TicketsByCategory(Resource):
 
 @tickets_ns.route('/tickets-by-status')
 class TicketsByStatus(Resource):
-    
+    @jwt_required
+    @cache.cached(timeout=86400)
     @tickets_ns.expect(filter_parser)
     def get(self):
         """
