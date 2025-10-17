@@ -27,13 +27,12 @@ class TicketsService:
             'end_date': end_date
         }
 
-
     def get_tickets_by_company_count(
         self,
-        company_id: Optional[int] = None,
-        product_id: Optional[int] = None,
-        category_id: Optional[int] = None,
-        priority_id: Optional[int] = None,
+        company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
         createdat: Optional[str] = None,
         end_date: Optional[str] = None
     ) -> List[Dict[str, Any]]:
@@ -98,6 +97,8 @@ class TicketsService:
         """
         Lógica de negócio para obter e formatar a contagem de tickets por status.
         """
+       
+        
         filter_kwargs = self._get_filter_kwargs(
             company_id, product_id, category_id, priority_id, createdat, end_date
         )
@@ -181,4 +182,4 @@ class TicketsService:
                 'percentage': percentage
             })
         
-        return result
+        return tickets_by_slaplan
