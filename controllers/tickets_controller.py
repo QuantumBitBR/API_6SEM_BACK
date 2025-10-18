@@ -134,8 +134,8 @@ class TicketsByStatus(Resource):
         
 @tickets_ns.route('/find-tickets-key-word')
 class TicketsByKeyWord(Resource):
-    @tickets_ns.expect(ticket_search_model, validate=True)
     @jwt_required
+    @tickets_ns.expect(ticket_search_model, validate=True)
     def post(self):
         try:
             tickets_service = TicketsService()
