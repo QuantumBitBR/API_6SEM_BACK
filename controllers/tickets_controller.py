@@ -10,6 +10,7 @@ tickets_ns = Namespace(
     'tickets', 
     description='Endpoints relacionados a tickets'
 )
+
 ticket_search_model = tickets_ns.model('TicketSearch', {
     'keyword': fields.String(required=True, description='Palavra-chave para buscar nos tickets')
 })
@@ -17,7 +18,7 @@ ticket_search_model = tickets_ns.model('TicketSearch', {
 
 filter_parser = reqparse.RequestParser()
 
-# Corrigindo os parâmetros para usar type=str e depois converter manualmente
+
 filter_parser.add_argument('company_id', type=str, help='IDs das empresas (separados por vírgula)', required=False)
 filter_parser.add_argument('product_id', type=str, help='IDs dos produtos (separados por vírgula)', required=False)
 filter_parser.add_argument('category_id', type=str, help='IDs das categorias (separados por vírgula)', required=False)
@@ -38,6 +39,8 @@ def parse_comma_separated_ids(id_string):
 
 @tickets_ns.route('/tickets-by-company')
 class TicketsByCompany(Resource):
+    @jwt_required
+    @cache.cached(timeout=86400)
     @tickets_ns.expect(filter_parser) 
     def get(self):
         """
@@ -46,7 +49,7 @@ class TicketsByCompany(Resource):
         try:
             args = filter_parser.parse_args()
             
-            # Converter strings para listas de inteiros
+           
             company_ids = parse_comma_separated_ids(args.get('company_id'))
             product_ids = parse_comma_separated_ids(args.get('product_id'))
             category_ids = parse_comma_separated_ids(args.get('category_id'))
@@ -73,14 +76,26 @@ class TicketsByCompany(Resource):
 class TicketsByProduct(Resource):
     @jwt_required
     @cache.cached(timeout=86400)
+    @tickets_ns.expect(filter_parser) 
     def get(self):
         """
-        Retorna a quantidade de tickets por produto.
+        Retorna a quantidade de tickets por produto, com filtros.
         """
         try:
+            args = filter_parser.parse_args()
             tickets_service = TicketsService()
-            tickets_by_product = tickets_service.get_tickets_by_product_count()
-            return {'data': tickets_by_product}, 200
+        
+            results = tickets_service.get_tickets_by_product_count(
+                company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date')
+            )
+            
+            return {'data': results}, 200
+
         except Exception as e:
             return {'error': str(e)}, 500
 
@@ -89,14 +104,27 @@ class TicketsByProduct(Resource):
 class TicketsByCategory(Resource):
     @jwt_required
     @cache.cached(timeout=86400)
+    @tickets_ns.expect(filter_parser) 
     def get(self):
         """
-        Retorna a quantidade de tickets por categoria.
+        Retorna a quantidade de tickets por categoria, com filtros.
         """
         try:
+            args = filter_parser.parse_args()
             tickets_service = TicketsService()
-            tickets_by_category = tickets_service.get_tickets_by_category_count()
-            return {'data': tickets_by_category}, 200
+            
+           
+            results = tickets_service.get_tickets_by_category_count(
+                company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date')
+            )
+            
+            return {'data': results}, 200
+
         except Exception as e:
             return {'error': str(e)}, 500
         
@@ -113,7 +141,7 @@ class TicketsByStatus(Resource):
         try:
             args = filter_parser.parse_args()
             
-            # Converter strings para listas de inteiros
+          
             company_ids = parse_comma_separated_ids(args.get('company_id'))
             product_ids = parse_comma_separated_ids(args.get('product_id'))
             category_ids = parse_comma_separated_ids(args.get('category_id'))
@@ -131,7 +159,20 @@ class TicketsByStatus(Resource):
             )
             
             return {'data': tickets_by_status}, 200
+        except Exception as e:
+            return {'error': str(e)}, 500
+        
+@tickets_ns.route('/find-tickets-key-word')
+class TicketsByKeyWord(Resource):
+    @jwt_required
+    @tickets_ns.expect(ticket_search_model, validate=True)
+    def post(self):
+        try:
+            tickets_service = TicketsService()
+            request_body = request.get_json()
+            key_word = request_body.get('keyword') if request_body else None
 
+            return tickets_service.get_tickets_by_key_word(key_word)
         except Exception as e:
             return {'error': str(e)}, 500
         
@@ -169,18 +210,3 @@ class TicketsBySLAPlanPercentage(Resource):
         tickets_service = TicketsService()
         result = tickets_service.get_tickets_by_slaplan()
         return {"data": result}
-
-
-@tickets_ns.route('/find-tickets-key-word')
-class TicketsByKeyWord(Resource):
-    @tickets_ns.expect(ticket_search_model, validate=True)
-    @jwt_required
-    def post(self):
-        try:
-            tickets_service = TicketsService()
-            request_body = request.get_json()
-            key_word = request_body.get('keyword') if request_body else None
-
-            return tickets_service.get_tickets_by_key_word(key_word)
-        except Exception as e:
-            return {'error': str(e)}, 500

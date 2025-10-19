@@ -1,4 +1,4 @@
-from config.db_connection import get_cursor
+from config.db_connection import get_cursor, get_cursor_db_keys
 from utils.encryptor import decrypt_data
 from datetime import datetime
 from typing import Optional, List, Tuple, Any, Union, Dict
@@ -122,11 +122,20 @@ class TicketsRepository:
             results = cur.fetchall()
             return self._process_query_result(results)
         
-    def get_tickets_by_product(self):
+    def get_tickets_by_product(
+        self,
+        company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Any]:
         """
-        Executa a consulta no banco de dados para contar os tickets por produto.
+        Executa a consulta no banco de dados para contar os tickets por produto,
+        aplicando filtros opcionais.
         """
-        sql_query = """
+        sql_base = """
             SELECT
                 p.name,
                 COUNT(t.ticketid) AS ticket_count
@@ -134,20 +143,39 @@ class TicketsRepository:
                 tickets t
             JOIN
                 products p ON t.productid = p.productid
-            GROUP BY
-                p.name;
         """
-
+        sql_group_by = " GROUP BY p.name;"
+        
+        sql_where, params = self._build_where_clause_and_params(
+            company_id=company_id,
+            product_id=product_id,
+            category_id=category_id,
+            priority_id=priority_id,
+            createdat=createdat,
+            end_date=end_date
+        )
+        
+        # Concatena as partes da query
+        sql_query = sql_base + sql_where + sql_group_by
+        
         with get_cursor() as cur:
-            cur.execute(sql_query)
-            results = cur.fetchall()
-            return self._process_query_result(results)
+            cur.execute(sql_query, tuple(params))
+            return cur.fetchall()
 
-    def get_tickets_by_category(self):
+    def get_tickets_by_category(
+        self,
+        company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Any]:
         """
-        Executa a consulta no banco de dados para contar os tickets por categoria.
+        Executa a consulta no banco de dados para contar os tickets por categoria,
+        aplicando filtros opcionais.
         """
-        sql_query = """
+        sql_base = """
             SELECT
                 ca.name,
                 COUNT(t.ticketid) AS ticket_count
@@ -155,14 +183,23 @@ class TicketsRepository:
                 tickets t
             JOIN
                 categories ca ON t.categoryid = ca.categoryid
-            GROUP BY
-                ca.name;
         """
-
+        sql_group_by = " GROUP BY ca.name;"
+        
+        sql_where, params = self._build_where_clause_and_params(
+            company_id=company_id,
+            product_id=product_id,
+            category_id=category_id,
+            priority_id=priority_id,
+            createdat=createdat,
+            end_date=end_date
+        )
+        
+        sql_query = sql_base + sql_where + sql_group_by
+        
         with get_cursor() as cur:
             cur.execute(sql_query)
-            results = cur.fetchall()
-            return self._process_query_result(results)
+            return cur.fetchall()
 
     def get_tickets_by_status(
         self,
@@ -295,8 +332,7 @@ class TicketsRepository:
                 prio.name AS priority_name, 
                 s.name AS status_name, 
                 t.channel, 
-                t.device, 
-                e.keyencrypt
+                t.device 
             FROM tickets t
             INNER JOIN companies c ON c.companyid = t.companyid
             INNER JOIN priorities prio ON prio.priorityid = t.priorityid
@@ -304,16 +340,21 @@ class TicketsRepository:
             INNER JOIN statuses s ON s.statusid = t.currentstatusid 
             INNER JOIN categories cat ON cat.categoryid = t.categoryid
             INNER JOIN subcategories s2 ON s2.subcategoryid = t.subcategoryid 
-            INNER JOIN encrypt_ticket e ON e.ticketid = t.ticketid
             WHERE t.ticketid = %s;
         """
-
+        key = None
+        if id:
+            with get_cursor_db_keys() as cur:
+                cur.execute("SELECT keyencrypt FROM encrypt_ticket WHERE ticketid = %s;", (int(id),))
+                key = cur.fetchone()
+                key = key[0].tobytes().decode('utf-8')
+        
         with get_cursor() as cur:
             cur.execute(sql_query, (int(id),))
             row = cur.fetchone()
             if not row:
                 raise ValueError(f"Id {id} não encontrado!")
-
+                        
             if isinstance(row, tuple):
                 colnames = [desc[0] for desc in cur.description]
                 row = dict(zip(colnames, row))
@@ -322,13 +363,12 @@ class TicketsRepository:
                 if isinstance(v, memoryview):
                     row[k] = v.tobytes().decode('utf-8')
 
-            key = row['keyencrypt']
             row['title'] = decrypt_data(key, row['title'])
             row['description'] = decrypt_data(key, row['description'])
 
             row.pop('keyencrypt', None)
 
-            return self._convert_decimals(row)
+            return row
                 
     def get_by_priority(self):
         """
@@ -399,5 +439,4 @@ class TicketsRepository:
         """
         with get_cursor() as cur:
             cur.execute(sql_query)
-            results = cur.fetchall()
-            return self._process_query_result(results)
+            return cur.fetchall()
