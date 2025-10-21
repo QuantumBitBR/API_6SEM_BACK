@@ -12,7 +12,7 @@ class ProphetModel:
         with open(model_path, 'rb') as f:
             self.model = pickle.load(f)
     
-    def predict_future(self, period: int = 3, freq: str = 'ME', start_date: str = '2018-01-01') -> pd.DataFrame:
+    def predict_future(self, period: int = 10, freq: str = 'ME', start_date: str = '2018-01-01') -> pd.DataFrame:
         valid_freqs = ['ME', 'D', 'YE']
         if freq not in valid_freqs:
             freq = 'ME'
