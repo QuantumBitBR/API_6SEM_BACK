@@ -119,6 +119,8 @@ class TicketsByCategory(Resource):
 
 @tickets_ns.route('/tickets-by-status')
 class TicketsByStatus(Resource):
+    @jwt_required
+    @cache.cached(timeout=86400)
     def get(self):
         """
         Retorna a quantidade de tickets por status.
