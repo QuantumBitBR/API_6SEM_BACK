@@ -125,9 +125,19 @@ class TicketsByStatus(Resource):
         """
         Retorna a quantidade de tickets por status.
         """
+
+        args = filter_parser.parse_args()
+
         try:
             tickets_service = TicketsService()
-            tickets_by_status = tickets_service.get_tickets_by_status_count()
+            tickets_by_status = tickets_service.get_tickets_by_status_count(
+                company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date'))
+            
             return {'data': tickets_by_status}, 200
         except Exception as e:
             return {'error': str(e)}, 500

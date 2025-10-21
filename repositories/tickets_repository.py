@@ -171,34 +171,69 @@ class TicketsRepository:
             cur.execute(sql_query, tuple(params))
             return cur.fetchall()
 
-    def get_tickets_by_status(self):
+    def get_tickets_by_status(
+        self,
+        company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Any]:
         """
-        Executa a consulta no banco de dados para contar os tickets por status.
+        Executa a consulta no banco de dados para contar os tickets por status,
+        aplicando filtros opcionais.
         """
-        sql_query = """
-            WITH total_tickets AS (
-                SELECT COUNT(DISTINCT ticketid) AS total_count
-                FROM ticketstatushistory
+        sql_where, params = self._build_where_clause_and_params(
+            company_id=company_id,
+            product_id=product_id,
+            category_id=category_id,
+            priority_id=priority_id,
+            createdat=createdat,
+            end_date=end_date
+        )
+        sql_filter_tickets = f"""
+            SELECT 
+                t.ticketid
+            FROM 
+                tickets t
+            {sql_where} -- Aplicando o WHERE
+        """
+        
+        sql_query = f"""
+            WITH valid_tickets AS (
+                {sql_filter_tickets}
+            ),
+            total_tickets AS (
+                SELECT COUNT(DISTINCT tsh.ticketid) AS total_count 
+        FROM 
+            ticketstatushistory tsh
+        JOIN 
+            valid_tickets vt ON tsh.ticketid = vt.ticketid 
             )
             SELECT
                 s.name,
-                CAST(COUNT(s.name) AS REAL) * 100 / (SELECT total_count FROM total_tickets) AS percentage
+                COALESCE(CAST(COUNT(s.name) AS REAL) * 100 / NULLIF((SELECT total_count FROM total_tickets), 0), 0) AS percentage
             FROM
                 ticketstatushistory tsh
             JOIN
                 statuses s ON tsh.tostatusid = s.statusid
+            JOIN
+                valid_tickets vt ON tsh.ticketid = vt.ticketid -- Junta apenas os tickets filtrados
             WHERE
+                -- Garante que só peguemos o status mais recente dos tickets FILTRADOS
                 tsh.historyid IN (
-                    SELECT MAX(historyid)
-                    FROM ticketstatushistory
-                    GROUP BY ticketid
+                    SELECT MAX(tsh_inner.historyid)
+                    FROM ticketstatushistory tsh_inner
+                    JOIN valid_tickets vt_inner ON tsh_inner.ticketid = vt_inner.ticketid -- Filtro aplicado aqui
+                    GROUP BY tsh_inner.ticketid
                 )
             GROUP BY
                 s.name;
         """
-        
+
         with get_cursor() as cur:
-            cur.execute(sql_query)
+            cur.execute(sql_query, tuple(params))
             return cur.fetchall()
         
     def get_by_id(self, id: int):

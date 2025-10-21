@@ -113,20 +113,36 @@ class TicketsService:
             
         return tickets_by_category
     
-    def get_tickets_by_status_count(self):
+    def get_tickets_by_status_count(
+        self,
+        company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+        ) -> List[Dict[str, Any]]:
         """
-        Lógica de negócio para obter e formatar a contagem de tickets por status.
+        Lógica de negócio para obter e formatar a contagem de tickets por status,
+        aplicando filtros.
         """
-        results = self.tickets_repository.get_tickets_by_status()
+        
+        filter_kwargs = self._get_filter_kwargs(
+            company_id, product_id, category_id, priority_id, createdat, end_date
+        )
+
+        results = self.tickets_repository.get_tickets_by_status(**filter_kwargs)
         
         tickets_by_status = []
         for row in results:
-            status_name, ticket_count = row
+
+            status_name, percentage = row 
+
             tickets_by_status.append({
                 'status_name': status_name,
-                'ticket_count': ticket_count
+                'percentage': round(percentage, 2) 
             })
-        
+            
         return tickets_by_status
 
     def get_tickets_by_priority(self):
