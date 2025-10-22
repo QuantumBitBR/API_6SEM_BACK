@@ -59,6 +59,7 @@ class GetTendencia(Resource):
             data = model.predict_future(**kwargs)
             data['ds'] = data['ds'].dt.strftime('%Y-%m-%d')
             data['yhat'] = data['yhat'].round(2)
+            data['yhat'] = data['yhat'].where(data['yhat'] >= 0, 0)
             return {"data": data.to_dict(orient="records")}, 200
         except Exception as error:
             return {"error": str(error)}, 500
