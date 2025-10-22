@@ -40,9 +40,9 @@ class GetTendencia(Resource):
             period = request.args.get("period", type=int)
             freq = request.args.get("freq", type=str)
             start_date = request.args.get("start_date", type=str)
-            id_model = request.args.get("id_model", type=int)
+            id_model = request.args.get("product_id", type=int)
 
-            model = ProphetModel()
+            
             kwargs = {}
 
             if period is not None:
@@ -52,10 +52,14 @@ class GetTendencia(Resource):
             if start_date is not None:
                 kwargs['start_date'] = start_date
             if id_model is not None:
-                kwargs['id_model'] = id_model
+                model = ProphetModel(id_model)
+            else:
+                model = ProphetModel()
 
             data = model.predict_future(**kwargs)
             data['ds'] = data['ds'].dt.strftime('%Y-%m-%d')
+            data['yhat'] = data['yhat'].round(2)
+            data['yhat'] = data['yhat'].where(data['yhat'] >= 0, 0)
             return {"data": data.to_dict(orient="records")}, 200
         except Exception as error:
             return {"error": str(error)}, 500
