@@ -285,28 +285,52 @@ class TicketsRepository:
             
             return row
                 
-    def get_by_priority(self):
+    def get_by_priority(self, company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Any]:
         """
         Executa a consulta no banco de dados para contar os tickets por prioridade.
         """
-        sql_query = """
+        sql_base = """
             select p.name, count(p.name) as total  from tickets t
             inner join priorities p
             on t.priorityid = p.priorityid
-            group by p.name;
         """
 
+        sql_group_by = " GROUP BY p.name;"
+
+        sql_where, params = self._build_where_clause_and_params(
+            company_id=company_id,
+            product_id=product_id,
+            category_id=category_id,
+            priority_id=priority_id,
+            createdat=createdat,
+            end_date=end_date
+        )
+        
+        sql_query = sql_base + sql_where + sql_group_by
+
         with get_cursor() as cur:
-            cur.execute(sql_query)
+            cur.execute(sql_query, tuple(params))
             return cur.fetchall()
         
-    def get_tickets_by_department(self):
+    def get_tickets_by_department(self, company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Any]:
         """
         Executa a consulta no banco de dados para contar os tickets por departamento,
         fazendo JOINs indiretos: tickets -> agents -> departments.
         Retorna uma lista de tuplas.
         """
-        sql_query = """
+        sql_base = """
             SELECT
                 d.name,
                 COUNT(t.ticketid) AS ticket_count
@@ -316,26 +340,50 @@ class TicketsRepository:
                 agents a ON t.assignedagentid = a.agentid
             JOIN
                 departments d ON a.departmentid = d.departmentid
-            GROUP BY
-                d.name;
         """
+        sql_group_by = " GROUP BY d.name;"
+
+        sql_where, params = self._build_where_clause_and_params(
+            company_id=company_id,
+            product_id=product_id,
+            category_id=category_id,
+            priority_id=priority_id,
+            createdat=createdat,
+            end_date=end_date
+        )
+        
+        sql_query = sql_base + sql_where + sql_group_by
         
         with get_cursor() as cur:
-            cur.execute(sql_query)
+            cur.execute(sql_query, tuple(params))
             return cur.fetchall()
         
 
-    def get_tickets_by_slaplan(self):
+    def get_tickets_by_slaplan(self, company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+    ) -> List[Any]:
         # mudar para que a porcentagem so retorne dois numeros depois da virgula
         """
         Executa a consulta no banco de dados para contar os tickets por SLAPlan.
         Retorna uma lista de tuplas (slaplan_name, ticket_count).
         """
-        sql_query = """
+        sql_where, params = self._build_where_clause_and_params(
+            company_id=company_id,
+            product_id=product_id,
+            category_id=category_id,
+            priority_id=priority_id,
+            createdat=createdat,
+            end_date=end_date
+        )
+        sql_base = f"""
             WITH total_tickets AS (
                 SELECT COUNT(ticketid) AS total_count
-                FROM tickets
-                WHERE slaplanid IS NOT NULL
+                FROM tickets t
+                {sql_where}
             )
             SELECT
                 sp.name,
@@ -349,11 +397,16 @@ class TicketsRepository:
                 tickets t
             JOIN
                 sla_plans sp ON t.slaplanid = sp.slaplanid
-            GROUP BY
-                sp.name;
+            {sql_where}
         """
+
+        sql_group_by = " GROUP BY sp.name;"
+
+        
+        
+        sql_query = sql_base + sql_group_by
         with get_cursor() as cur:
-            cur.execute(sql_query)
+            cur.execute(sql_query, tuple(params*2))
             return cur.fetchall()
         
     def get_all_categories(self):
