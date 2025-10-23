@@ -145,11 +145,20 @@ class TicketsService:
             
         return tickets_by_status
 
-    def get_tickets_by_priority(self):
+    def get_tickets_by_priority(self, company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+        ) -> List[Dict[str, Any]]:
         """
         Lógica de negócio para obter e formatar a contagem de tickets por prioridade.
         """
-        results = self.tickets_repository.get_by_priority()
+        filter_kwargs = self._get_filter_kwargs(
+            company_id, product_id, category_id, priority_id, createdat, end_date
+        )
+        results = self.tickets_repository.get_by_priority(**filter_kwargs)
         
         tickets_by_priority = []
         for row in results:
@@ -186,9 +195,18 @@ class TicketsService:
                 'error': 'erro ao tentar buscar os dados'
             }, 500
         
-    def get_tickets_by_department_count(self):
+    def get_tickets_by_department_count(self, company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+        ) -> List[Dict[str, Any]]:
         """Busca e formata a contagem de tickets por departamento."""
-        tickets_by_department = self.tickets_repository.get_tickets_by_department()
+        filter_kwargs = self._get_filter_kwargs(
+            company_id, product_id, category_id, priority_id, createdat, end_date
+        )
+        tickets_by_department = self.tickets_repository.get_tickets_by_department(**filter_kwargs)
         return [
             {
                 "department_name": department,
@@ -197,12 +215,21 @@ class TicketsService:
             for department, count in tickets_by_department
         ]
     
-    def get_tickets_by_slaplan(self):
+    def get_tickets_by_slaplan(self, company_id: Optional[List[int]] = None,
+        product_id: Optional[List[int]] = None,
+        category_id: Optional[List[int]] = None,
+        priority_id: Optional[List[int]] = None,
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None
+        ) -> List[Dict[str, Any]]:
         """
         Busca a contagem de tickets por SLAPlan, calcula a porcentagem
         e retorna os resultados formatados.
         """
-        result = self.tickets_repository.get_tickets_by_slaplan()
+        filter_kwargs = self._get_filter_kwargs(
+            company_id, product_id, category_id, priority_id, createdat, end_date
+        )
+        result = self.tickets_repository.get_tickets_by_slaplan(**filter_kwargs)
         
         tickets_by_slaplan = []
         for row in result:

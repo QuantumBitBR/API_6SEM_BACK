@@ -158,6 +158,7 @@ class TicketsByKeyWord(Resource):
         
 @tickets_ns.route('/tickets-by-priority')
 class TicketsByStatus(Resource):
+    @tickets_ns.expect(filter_parser) 
     @jwt_required
     @cache.cached(timeout=86400)
     def get(self):
@@ -166,30 +167,57 @@ class TicketsByStatus(Resource):
         """
         try:
             tickets_service = TicketsService()
-            tickets_by_status = tickets_service.get_tickets_by_priority()
+            args = filter_parser.parse_args()
+            tickets_by_status = tickets_service.get_tickets_by_priority(company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date'))
             return {'data': tickets_by_status}, 200
         except Exception as e:
             return {'error': str(e)}, 500
         
 @tickets_ns.route('/tickets-by-department')
 class TicketsByDepartment(Resource):
+    @tickets_ns.expect(filter_parser) 
     @jwt_required
     @cache.cached(timeout=86400)
     def get(self):
         """Retorna a contagem de tickets por departamento."""
-        tickets_service = TicketsService()
-        result = tickets_service.get_tickets_by_department_count()
-        return {"data": result}
+        try:
+            tickets_service = TicketsService()
+            args = filter_parser.parse_args()
+            result = tickets_service.get_tickets_by_department_count(company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date'))
+            return {"data": result}, 200
+        except Exception as e:
+            return {'error': str(e)}, 500
     
 @tickets_ns.route('/tickets-by-slaplan')
 class TicketsBySLAPlanPercentage(Resource):
+    @tickets_ns.expect(filter_parser) 
     @jwt_required
     @cache.cached(timeout=86400)
     def get(self):
         """Retorna o percentual de tickets por SLAPlan."""
-        tickets_service = TicketsService()
-        result = tickets_service.get_tickets_by_slaplan()
-        return {"data": result}
+        try:
+
+            tickets_service = TicketsService()
+            args = filter_parser.parse_args()
+            result = tickets_service.get_tickets_by_slaplan(company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date'))
+            return {"data": result}
+        except Exception as e:
+            return {'error': str(e)}, 500
 
 
 @tickets_ns.route('/categories')
