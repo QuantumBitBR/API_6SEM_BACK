@@ -286,7 +286,7 @@ class TicketsRepository:
                 row['description'] = decrypt_data(key, row['description'])
                 
                 return row
-            return False
+        return False
                 
     def get_by_priority(self, company_id: Optional[List[int]] = None,
         product_id: Optional[List[int]] = None,
