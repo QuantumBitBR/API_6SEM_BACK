@@ -11,7 +11,7 @@ class IndexService:
                 "query": {
                     "multi_match": {
                         "query": query,
-                        "fields": ["title", "description", "product", "company", "status", "category", "subcategory", "priority", "channel", "device"],
+                        "fields": ["title", "description"],
                         "fuzziness": 'AUTO'
                     }
                 }

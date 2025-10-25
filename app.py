@@ -7,14 +7,9 @@ from controllers.auth_controller import auth_ns
 from controllers.user_controller import users_ns
 from config.extensions import db, ma, cache
 from controllers.companies_controller import companies_ns
-from controllers.products_controller import products_ns
 from controllers.privacy_policy_controller import privacy_policy_ns
-from controllers.ia_controller import ia_ns
 from controllers.user_controller import users_ns
 from flask_caching import Cache
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = Flask(__name__)
 api = Api(app, version="1.0", title="Help.AI!", description="Help.AI!")
@@ -23,7 +18,6 @@ CORS(app)
 api.add_namespace(tickets_ns, '/tickets')
 api.add_namespace(users_ns, "/user")
 api.add_namespace(auth_ns, "/auth")
-api.add_namespace(ia_ns, '/ia')
 # Database config
 app.config['SECRET_KEY'] = environ.get("SECRET_KEY")
 app.config['SQLALCHEMY_DATABASE_URI'] = environ.get("DATABASE_URL")
@@ -40,7 +34,6 @@ cache.init_app(app)
 api.add_namespace(companies_ns, '/companies')
 api.add_namespace(privacy_policy_ns, '/privacy')
 api.add_namespace(users_ns, '/users-tickets')
-api.add_namespace(products_ns, '/products')
 
 
 if __name__ == "__main__":

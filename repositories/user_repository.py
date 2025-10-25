@@ -1,4 +1,4 @@
-from config.db_connection import get_cursor, get_cursor_db_keys
+from config.db_connection import get_cursor
 
 class UserRepository:
     def __init__(self):
@@ -15,16 +15,13 @@ class UserRepository:
         third_sql_query = """
             DELETE FROM encrypt_ticket WHERE ticketid IN %s
         """
-        ticket_ids = ()
 
         with get_cursor() as cur:
-            cur.execute(second_sql_query, (userid, ))
-            rows = cur.fetchall()
-            ticket_ids = tuple(row[0] for row in rows)
-
-
-        with get_cursor_db_keys() as cur:
             try: 
+                cur.execute(second_sql_query, (userid, ))
+                rows = cur.fetchall()
+                ticket_ids = tuple(row[0] for row in rows)
+
                 if ticket_ids:
                     cur.execute(third_sql_query, (ticket_ids, ))
 

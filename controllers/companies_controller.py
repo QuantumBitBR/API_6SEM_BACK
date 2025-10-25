@@ -19,17 +19,3 @@ class CompaniesWithUsers(Resource):
 
         except Exception as e:
             return {'error': str(e)}, 500
-
-@companies_ns.route('/all-companies')
-class AllCompanies(Resource):
-    def get(self):
-        """
-        Retorna todas as empresas.
-        """
-        try:
-            companies_service = CompaniesService()
-            data = companies_service.get_all_companies()
-            return {'data': data}, 200
-
-        except Exception as e:
-            return {'error': str(e)}, 500
