@@ -187,7 +187,9 @@ class TicketsService:
                 }, 204
             
             for i in tickets:
-                tickets_completos.append(self.get_by_id(i['id']))
+                ticket_encontrado = self.get_by_id(i['id'])
+                if ticket_encontrado != False:
+                    tickets_completos.append(ticket_encontrado)
             
             return {"data": tickets_completos}, 200
         except Exception:
