@@ -32,3 +32,17 @@ class CompaniesService:
                 "fullname":fullname})
         
         return list(companies.values())
+    
+    def get_all_companies(self):
+        """
+        Retorna todas as empresas.
+        """
+        results = self.companies_repository.get_all_companies()
+        companies = []
+        for row in results:
+            company = {
+                "CompanyID": row[0],
+                "CompanyName": row[1]
+            }
+            companies.append(company)
+        return companies

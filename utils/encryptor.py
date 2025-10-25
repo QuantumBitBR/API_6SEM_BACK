@@ -34,5 +34,5 @@ def decrypt_data(key, ciphertext):
 
     try:
         return f.decrypt(ciphertext).decode('utf-8')
-    except Exception:
+    except Exception as e:
         return ciphertext.decode('utf-8', errors='ignore')
