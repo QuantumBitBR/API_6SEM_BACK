@@ -264,26 +264,29 @@ class TicketsRepository:
             with get_cursor_db_keys() as cur:
                 cur.execute("SELECT keyencrypt FROM encrypt_ticket WHERE ticketid = %s;", (int(id),))
                 key = cur.fetchone()
-                key = key[0].tobytes().decode('utf-8')
-        
-        with get_cursor() as cur:
-            cur.execute(sql_query, (int(id),))
-            row = cur.fetchone()
-            if not row:
-                raise ValueError(f"Id {id} não encontrado!")
-                        
-            if isinstance(row, tuple):
-                colnames = [desc[0] for desc in cur.description]
-                row = dict(zip(colnames, row))
+                if key != None:
+                    key = key[0].tobytes().decode('utf-8')
 
-            for k, v in row.items():
-                if isinstance(v, memoryview):
-                    row[k] = v.tobytes().decode('utf-8')
+        if key != None:
+            with get_cursor() as cur:
+                cur.execute(sql_query, (int(id),))
+                row = cur.fetchone()
+                if not row:
+                    raise ValueError(f"Id {id} não encontrado!")
+                            
+                if isinstance(row, tuple):
+                    colnames = [desc[0] for desc in cur.description]
+                    row = dict(zip(colnames, row))
 
-            row['title'] = decrypt_data(key, row['title'])
-            row['description'] = decrypt_data(key, row['description'])
-            
-            return row
+                for k, v in row.items():
+                    if isinstance(v, memoryview):
+                        row[k] = v.tobytes().decode('utf-8')
+
+                row['title'] = decrypt_data(key, row['title'])
+                row['description'] = decrypt_data(key, row['description'])
+                
+                return row
+            return False
                 
     def get_by_priority(self, company_id: Optional[List[int]] = None,
         product_id: Optional[List[int]] = None,
