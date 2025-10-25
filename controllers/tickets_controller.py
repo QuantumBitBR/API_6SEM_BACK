@@ -32,7 +32,6 @@ def make_cache_key_with_filters():
 class TicketsByCompany(Resource):
     @jwt_required
     @tickets_ns.expect(filter_parser) 
-    @cache.cached(timeout=86400, key_prefix=make_cache_key_with_filters)
     def get(self):
         """
         Retorna a quantidade de tickets por empresa, com filtros de ID e período.
@@ -66,7 +65,6 @@ class TicketsByCompany(Resource):
 class TicketsByProduct(Resource):
     @jwt_required
     @tickets_ns.expect(filter_parser) 
-    @cache.cached(timeout=86400, key_prefix=make_cache_key_with_filters)
     def get(self):
         """
         Retorna a quantidade de tickets por produto, com filtros.
@@ -94,7 +92,6 @@ class TicketsByProduct(Resource):
 class TicketsByCategory(Resource):
     @jwt_required
     @tickets_ns.expect(filter_parser) 
-    @cache.cached(timeout=86400, key_prefix=make_cache_key_with_filters)
     def get(self):
         """
         Retorna a quantidade de tickets por categoria, com filtros.
@@ -123,7 +120,6 @@ class TicketsByCategory(Resource):
 class TicketsByStatus(Resource):
     @jwt_required
     @tickets_ns.expect(filter_parser)
-    @cache.cached(timeout=86400, key_prefix=make_cache_key_with_filters)
     def get(self):
         """
         Retorna a quantidade de tickets por status.
@@ -163,7 +159,6 @@ class TicketsByKeyWord(Resource):
 class TicketsByStatus(Resource):
     @jwt_required
     @tickets_ns.expect(filter_parser) 
-    @cache.cached(timeout=86400, key_prefix=make_cache_key_with_filters)
     def get(self):
         """
         Retorna a quantidade de tickets por prioridade.
@@ -185,7 +180,6 @@ class TicketsByStatus(Resource):
 class TicketsByDepartment(Resource):
     @jwt_required
     @tickets_ns.expect(filter_parser) 
-    @cache.cached(timeout=86400, key_prefix=make_cache_key_with_filters)
     def get(self):
         """Retorna a contagem de tickets por departamento."""
         try:
@@ -205,7 +199,6 @@ class TicketsByDepartment(Resource):
 class TicketsBySLAPlanPercentage(Resource):
     @jwt_required
     @tickets_ns.expect(filter_parser) 
-    @cache.cached(timeout=86400, key_prefix=make_cache_key_with_filters)
     def get(self):
         """Retorna o percentual de tickets por SLAPlan."""
         try:
@@ -227,7 +220,6 @@ class TicketsBySLAPlanPercentage(Resource):
 class TicketCategories(Resource):
     @jwt_required
     @tickets_ns.expect(filter_parser)
-    @cache.cached(timeout=86400, key_prefix=make_cache_key_with_filters)
     def get(self):
         """Retorna todas as categorias de tickets."""
         tickets_service = TicketsService()
