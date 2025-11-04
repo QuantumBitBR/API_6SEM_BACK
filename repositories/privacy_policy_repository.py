@@ -5,6 +5,18 @@ class PrivacyPolicyRepository:
     def __init__(self):
         pass
 
+    def create_privacy_policy(self, text: str, is_mandatory: bool):
+        sql_query = """
+            INSERT INTO privacy_policy_version (text, is_mandatory, validity_date)
+            VALUES (%s, %s, %s)    
+        """
+        try:
+            with get_cursor() as cur:
+                cur.execute(sql_query, (text, is_mandatory, datetime.now()))
+                return True
+        except Exception:
+            return False
+
     def post_new_accept(self, userid: int, privacypolicyid: int):
         sql_query = """
             INSERT INTO privacy_policy_version_accept (id_user, id_privacy_policy, validity_date)
@@ -79,5 +91,4 @@ class PrivacyPolicyRepository:
                 cur.execute(sql_query, (userid, privacyid, datetime.now(), description))
                 return True
         except Exception as error:
-            print(str(error))
             return False
