@@ -17,6 +17,29 @@ class PrivacyPolicyRepository:
         except Exception as e:
             return False
         
+    def get_accept(self, userid: int, privacypolicyid: int):
+        sql_query = """SELECT is_revoke FROM privacy_policy_version_accept where id_user = %s and id_privacy_policy = %s"""
+
+        try:
+            with get_cursor() as cur:
+                cur.execute(sql_query, (userid, privacypolicyid))
+                return cur.fetchone()
+        except Exception:
+            raise {"error": "Algo ocorreu errado"}
+        
+    def revoke_reaccept_policy(self, userid: int, privacypolicyid: int, is_revoke: bool):
+        sql_query = """
+                UPDATE privacy_policy_version_accept 
+                SET is_revoke = %s, validity_date = %s where id_user = %s
+                and id_privacy_policy = %s
+                """
+        try:
+            with get_cursor() as cur:
+                cur.execute(sql_query, (is_revoke, datetime.now(), userid, privacypolicyid))
+                return True
+        except Exception:
+            return False
+        
     def get_current_privacy(self):
         sql_query = """
             SELECT * FROM privacy_policy_version order by validity_date DESC limit 1;
@@ -46,3 +69,15 @@ class PrivacyPolicyRepository:
         with get_cursor() as cur:
             cur.execute(sql_query, (userid, privacy_id))
             return cur.fetchone()
+        
+    def add_log_privacy(self, userid: int, privacyid: int, description: str):
+        sql_query = """INSERT INTO log_privacy_policy_accept_revoke(user_id, privacy_id, action_date,
+            action_description) VALUES(%s, %s, %s, %s)"""
+        
+        try:
+            with get_cursor() as cur:
+                cur.execute(sql_query, (userid, privacyid, datetime.now(), description))
+                return True
+        except Exception as error:
+            print(str(error))
+            return False
