@@ -9,9 +9,13 @@ class PrivacyPolicyService:
         try:
             response = self.privacy_repository.get_accept(userid, privacy_id)
             response = response[0]
+
             if response == None: 
                 response = self.privacy_repository.post_new_accept(userid, privacy_id)
                 if response:
+                    log = self.privacy_repository.add_log_privacy(userid, privacy_id, "Termo de privacidade aceito")
+                    if not log:
+                        return {"error": "Algo ocorreu errado"}, 500 
                     return {"message": "Termo de privacidade aceito com sucesso!"}, 201
                 
                 return {"error": "Algo ocorreu errado"}, 500
@@ -20,13 +24,18 @@ class PrivacyPolicyService:
             result = self.privacy_repository.revoke_reaccept_policy(userid, privacy_id, is_revoke)
             
             if result and is_revoke:
+                log = self.privacy_repository.add_log_privacy(userid, privacy_id, "Termo de privacidade revogado")
+                if not log:
+                    return {"error": "Algo ocorreu errado"}, 500 
                 return {"message": "Termo de privacidade revogado!"}, 201
 
             if result and not is_revoke:
+                log = self.privacy_repository.add_log_privacy(userid, privacy_id, "Termo de privacidade aceito")
+                if not log:
+                    return {"error": "Algo ocorreu errado"}, 500 
                 return {"message": "Termo de privacidade aceito com sucesso!"}, 201
             
             return {"error": "Algo ocorreu errado"}, 500
-        
         except Exception:
             return {"error": "Algo ocorreu errado"}, 500
         

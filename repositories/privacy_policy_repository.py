@@ -71,12 +71,13 @@ class PrivacyPolicyRepository:
             return cur.fetchone()
         
     def add_log_privacy(self, userid: int, privacyid: int, description: str):
-        sql_query = """INSERT INTO log_privay_policy_accept_revoke(id_user, privacy_id, action_date,
-            description_action) VALUES(%s, %s, %s, %s)"""
+        sql_query = """INSERT INTO log_privacy_policy_accept_revoke(user_id, privacy_id, action_date,
+            action_description) VALUES(%s, %s, %s, %s)"""
         
         try:
             with get_cursor() as cur:
                 cur.execute(sql_query, (userid, privacyid, datetime.now(), description))
                 return True
-        except Exception:
+        except Exception as error:
+            print(str(error))
             return False
