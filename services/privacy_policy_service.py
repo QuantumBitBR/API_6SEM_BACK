@@ -6,8 +6,29 @@ class PrivacyPolicyService:
         self.privacy_repository = PrivacyPolicyRepository()
         
     def add_accept_privacy(self, userid, privacy_id):
-        response = self.privacy_repository.post_new_accept(userid, privacy_id)
-        return response
+        try:
+            response = self.privacy_repository.get_accept(userid, privacy_id)
+            response = response[0]
+            if response == None: 
+                response = self.privacy_repository.post_new_accept(userid, privacy_id)
+                if response:
+                    return {"message": "Termo de privacidade aceito com sucesso!"}, 201
+                
+                return {"error": "Algo ocorreu errado"}, 500
+            
+            is_revoke = not response
+            result = self.privacy_repository.revoke_reaccept_policy(userid, privacy_id, is_revoke)
+            
+            if result and is_revoke:
+                return {"message": "Termo de privacidade revogado!"}, 201
+
+            if result and not is_revoke:
+                return {"message": "Termo de privacidade aceito com sucesso!"}, 201
+            
+            return {"error": "Algo ocorreu errado"}, 500
+        
+        except Exception:
+            return {"error": "Algo ocorreu errado"}, 500
         
     def get_current_privacy(self):
         return self.privacy_repository.get_current_privacy()

@@ -24,11 +24,9 @@ class AcceptPrivacy(Resource):
         if id_user == None or id_privacy == None:
             return{
                 "error": "privacyid and userid cannot be null or empty"
-            }
+            },500
         policy_service = PrivacyPolicyService()
 
-        if policy_service.add_accept_privacy(id_user, id_privacy):
-            return {}, 201
-        return {
-            "error": "Something is wrong"
-        }, 500
+        response = policy_service.add_accept_privacy(id_user, id_privacy)
+
+        return response
