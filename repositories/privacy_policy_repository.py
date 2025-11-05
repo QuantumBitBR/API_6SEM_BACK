@@ -81,3 +81,18 @@ class PrivacyPolicyRepository:
         except Exception as error:
             print(str(error))
             return False
+        
+    def get_privacy_policies(self):
+        sql_query = """
+            SELECT id, text, validity_date, is_mandatory
+            FROM privacy_policy_version
+            ORDER BY validity_date
+        """
+        try:
+            with get_cursor() as cur:
+                cur.execute(sql_query)
+                response = cur.fetchall()
+                return response
+        except Exception:
+            raise TypeError("Erro ao tentar buscar os  dados")
+

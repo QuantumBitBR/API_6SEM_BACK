@@ -4,6 +4,16 @@ from repositories.privacy_policy_repository import PrivacyPolicyRepository
 class PrivacyPolicyService:
     def __init__(self):
         self.privacy_repository = PrivacyPolicyRepository()
+    
+    def get_privacy_policies(self,):
+        try:
+            response = self.privacy_repository.get_privacy_policies()
+            print(response)
+            return {"data": [{"id": id, "text": text,"validity_date": validity_date.strftime("%d/%m/%Y %H:%M:%S") if validity_date else None, "is_mandatory": is_mandatory} for id, text, validity_date, is_mandatory in response]}, 200
+        except Exception:
+            return {
+                "error": "Algo ocorreu errado"
+            }, 500
         
     def add_accept_privacy(self, userid, privacy_id):
         try:
