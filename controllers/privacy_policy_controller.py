@@ -35,6 +35,16 @@ class AcceptPrivacy(Resource):
         response = policy_service.add_accept_privacy(id_user, id_privacy)
 
         return response
+
+@privacy_policy_ns.route("/all")
+class GetAllPrivacyPolicies(Resource):
+    def get(self):
+        try:
+            service = PrivacyPolicyService()
+            response = service.get_privacy_policies()
+            return response
+        except Exception:
+            return {"error": "Algo ocorreu errado."}, 500
     
 @privacy_policy_ns.route("/create")
 class CreatePrivacy(Resource):
