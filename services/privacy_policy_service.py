@@ -57,3 +57,10 @@ class PrivacyPolicyService:
     
     def get_last_policy_user_accept(self, userid, privacy_id):
         return self.privacy_repository.get_last_user_accept(userid, privacy_id)
+    
+    def create_privacy_policy(self, text: str, is_mandatory: bool):
+        response = self.privacy_repository.create_privacy_policy(text, is_mandatory)
+        if response:
+            return {"message": "Criado com sucesso"}, 201
+        
+        return {"error": "Algo ocorreu errado"}, 500
