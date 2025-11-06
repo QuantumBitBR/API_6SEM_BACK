@@ -19,7 +19,6 @@ class PrivacyPolicyService:
     def get_all_privacy_by_user(self, userid: int):
         try:
             user = self.user_service.get_user_authentication_by_id(userid)
-            print("Usuario", user)
             if user[1] == 404:
                 return user
             response = self.privacy_repository.get_all_privacy_by_user(userid)

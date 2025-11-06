@@ -31,7 +31,6 @@ class UserRepository:
                 cur.execute(first_sql_query, (userid, ))
                 return True
             except Exception as e:
-                print(str(e))
                 return False
 
     def get_by_id(self, userid):

@@ -112,6 +112,7 @@ class PrivacyPolicyRepository:
             SELECT p.id, p.text, p.validity_date, p.is_mandatory, u.is_revoke
             FROM privacy_policy_version p LEFT JOIN 
             privacy_policy_version_accept u on p.id = u.id_privacy_policy AND u.id_user = %s
+            ORDER BY p.validity_date
         """
 
         try:
@@ -120,5 +121,4 @@ class PrivacyPolicyRepository:
                 response = cur.fetchall()
                 return response
         except Exception as e:
-            print(e)
             raise TypeError("Erro ao tentar buscar os  dados")
