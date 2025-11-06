@@ -1,4 +1,5 @@
 from repositories.user_auth_repository import UserAuthRepository
+from werkzeug.security import generate_password_hash
 from typing import Dict, Any
 
 import bcrypt
@@ -28,10 +29,13 @@ class UserAuthService:
                 
         user_data['role'] = user_data.get('role', 'user')
         
-        password = user_data.pop('password').encode('utf-8')
-        hashed_password = bcrypt.hashpw(password, bcrypt.gensalt()).decode('utf-8')
+        password = user_data.pop('password') # Não precisa de .encode('utf-8')
         
+        hashed_password = generate_password_hash(password)
+
         user_data['hashed_password'] = hashed_password
+        
+        user_data['role'] = user_data.get('role', 'user')
              
         new_auth_user_id = self.auth_repository.create_auth_user(user_data)
         
