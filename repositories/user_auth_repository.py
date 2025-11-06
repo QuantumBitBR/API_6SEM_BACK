@@ -44,3 +44,17 @@ class UserAuthRepository:
             if result:
                 return {'id': result[0], 'email': result[1]} 
             return None
+        
+    def delete_user_by_id(self, user_id: int) -> int:
+        """
+        Deleta um usuário da tabela 'user_authentication' pelo ID.
+        Retorna o número de linhas afetadas (0 ou 1).
+        """
+        sql_delete = """
+            DELETE FROM user_authentication
+            WHERE id = %s;
+        """
+        
+        with get_cursor() as cur:
+            cur.execute(sql_delete, (user_id,))
+            return cur.rowcount
