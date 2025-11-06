@@ -31,7 +31,10 @@ class PrivacyPolicyService:
     def add_accept_privacy(self, userid, privacy_id):
         try:
             response = self.privacy_repository.get_accept(userid, privacy_id)
-            response = response[0]
+            try:
+                response = response[0]
+            except Exception:
+                response = None
 
             if response == None: 
                 response = self.privacy_repository.post_new_accept(userid, privacy_id)
