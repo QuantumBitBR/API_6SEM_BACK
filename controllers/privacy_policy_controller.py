@@ -64,3 +64,21 @@ class CreatePrivacy(Resource):
         response = service.create_privacy_policy(text, is_mandatory)
 
         return response
+
+@privacy_policy_ns.route("/get-by-user")
+@privacy_policy_ns.doc(params={
+        'userid': {
+            'description': 'Id do usuário que gostaria de buscar',
+            'type': 'int',
+            'required': True
+        }
+    })
+class GetPrivacyPolicyByUser(Resource):
+    def get(self):
+        try:
+            service = PrivacyPolicyService()
+            userid = request.args.get("userid", type=int)
+            response = service.get_all_privacy_by_user(userid)
+            return response
+        except Exception:
+            return {"error": "Algo ocorreu errado."}, 500

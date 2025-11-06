@@ -45,3 +45,15 @@ class UserRepository:
             if row:
                 return row
             return None
+        
+    def get_user_authentication_by_id(self, userid):
+        sql_query = """
+            SELECT * FROM user_authentication where id = %s
+        """
+
+        with get_cursor() as cur:
+            cur.execute(sql_query, (userid,))
+            row = cur.fetchone()
+            if row:
+                return row
+            return None

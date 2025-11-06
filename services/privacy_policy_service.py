@@ -1,16 +1,30 @@
 from config.db_connection import get_cursor
 from repositories.privacy_policy_repository import PrivacyPolicyRepository
+from services.user_service import UserService
 
 class PrivacyPolicyService:
     def __init__(self):
         self.privacy_repository = PrivacyPolicyRepository()
+        self.user_service = UserService()
     
     def get_privacy_policies(self,):
         try:
             response = self.privacy_repository.get_privacy_policies()
-            print(response)
-            return {"data": [{"id": id, "text": text,"validity_date": validity_date.strftime("%d/%m/%Y %H:%M:%S") if validity_date else None, "is_mandatory": is_mandatory} for id, text, validity_date, is_mandatory in response]}, 200
+            return {"data": [{"id": id, "text": text,"validity_date": validity_date.strftime("%d/%m/%Y %H:%M:%S") if validity_date else None, "is_mandatory": is_mandatory if is_mandatory != None else False} for id, text, validity_date, is_mandatory in response]}, 200
         except Exception:
+            return {
+                "error": "Algo ocorreu errado"
+            }, 500
+        
+    def get_all_privacy_by_user(self, userid: int):
+        try:
+            user = self.user_service.get_user_authentication_by_id(userid)
+            print("Usuario", user)
+            if user[1] == 404:
+                return user
+            response = self.privacy_repository.get_all_privacy_by_user(userid)
+            return {"data": [{"id": id, "text": text,"validity_date": validity_date.strftime("%d/%m/%Y %H:%M:%S") if validity_date else None, "is_mandatory": is_mandatory if is_mandatory != None else False,"is_accept": is_revoke if is_revoke != None else False} for id, text, validity_date, is_mandatory, is_revoke in response]}, 200
+        except Exception as e:
             return {
                 "error": "Algo ocorreu errado"
             }, 500
