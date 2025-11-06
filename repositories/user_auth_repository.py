@@ -1,5 +1,5 @@
 from config.db_connection import get_cursor
-from typing import Dict, Any
+from typing import Dict, Any, Optional
         
 class UserAuthRepository:
     def __init__(self):
@@ -30,3 +30,17 @@ class UserAuthRepository:
             cur.execute(sql_insert, params)
             new_user_id = cur.fetchone()[0]
             return new_user_id
+        
+    def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        """
+        Busca um usuário pelo email. Retorna None se não for encontrado.
+        """
+        sql_select = "SELECT id, email FROM user_authentication WHERE email = %s;"
+        
+        with get_cursor() as cur:
+            cur.execute(sql_select, (email,))
+            result = cur.fetchone()
+            
+            if result:
+                return {'id': result[0], 'email': result[1]} 
+            return None

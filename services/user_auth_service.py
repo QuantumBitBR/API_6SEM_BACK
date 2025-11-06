@@ -3,6 +3,9 @@ from typing import Dict, Any
 
 import bcrypt
 
+class UserAlreadyExistsError(Exception):
+    pass
+
 class UserAuthService:
     def __init__(self):
         self.auth_repository = UserAuthRepository()
@@ -17,11 +20,15 @@ class UserAuthService:
         for field in required_fields:
             if not user_data.get(field):
                 raise ValueError(f"O campo '{field}' é obrigatório.")
+        
+        existing_user = self.auth_repository.get_user_by_email(user_data['email'])
+        
+        if existing_user:
+            raise UserAlreadyExistsError("Usuário já existe no sistema.")
                 
         user_data['role'] = user_data.get('role', 'user')
         
         password = user_data.pop('password').encode('utf-8')
-        
         hashed_password = bcrypt.hashpw(password, bcrypt.gensalt()).decode('utf-8')
         
         user_data['hashed_password'] = hashed_password

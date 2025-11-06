@@ -1,7 +1,7 @@
 from flask_restx import Resource, fields, Namespace
 from flask import request
 from config.auth import jwt_required
-from services.user_auth_service import UserAuthService
+from services.user_auth_service import UserAuthService, UserAlreadyExistsError
 
 
 user_auth_ns = Namespace(
@@ -32,6 +32,9 @@ class CriarUserAuthResource(Resource):
             
             return {'data': results}, 201 
 
+        except UserAlreadyExistsError as uae:
+            return {'error': str(uae)}, 409
+        
         except ValueError as ve:
             return {'error': str(ve)}, 400
             
