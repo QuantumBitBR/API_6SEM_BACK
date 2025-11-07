@@ -48,6 +48,8 @@ def check_policy_terms(user_id):
             'id_policy': current_policy[0] if current_policy else None,
             'text_policy': current_policy[1] if current_policy else None,
             'policy_date': current_policy[2].isoformat() if current_policy else None,
+            'is_mandatory': current_policy[3] if current_policy else False,
+
         }
     }
 
