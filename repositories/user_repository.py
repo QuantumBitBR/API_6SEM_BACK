@@ -48,7 +48,8 @@ class UserRepository:
         
     def get_user_authentication_by_id(self, userid):
         sql_query = """
-            SELECT * FROM user_authentication where id = %s
+            SELECT id,name,role,email
+            FROM user_authentication where id = %s
         """
 
         with get_cursor() as cur:
@@ -60,8 +61,6 @@ class UserRepository:
                     "name": row[1],
                     "role":row[2],
                     "email":row[3],
-                    "password":row[4],
-                    "createdat": row[5].isoformat() if row[5] else None
                 }
             return None
         
