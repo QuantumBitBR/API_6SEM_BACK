@@ -42,7 +42,8 @@ class UserRepository:
             cur.execute(sql_query, (userid,))
             row = cur.fetchone()
             if row:
-                return row
+                return row             
+                    
             return None
         
     def get_user_authentication_by_id(self, userid):
@@ -54,5 +55,15 @@ class UserRepository:
             cur.execute(sql_query, (userid,))
             row = cur.fetchone()
             if row:
-                return row
+                return {
+                    "id": row[0], 
+                    "name": row[1],
+                    "role":row[2],
+                    "email":row[3],
+                    "password":row[4],
+                    "createdat": row[5].isoformat() if row[5] else None
+                }
             return None
+        
+    
+             
