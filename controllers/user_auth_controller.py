@@ -13,10 +13,26 @@ user_auth_model = user_auth_ns.model('AuthUserModel', {
      'email': fields.String(required=True, description='Email (único)'),
      'password': fields.String(required=True, description='Senha (será hasheada)'),
      'role': fields.String(required=False, default='user', description='Perfil de acesso (ex: admin, user)')
- })
+})
 
-delete_parser = reqparse.RequestParser()
-delete_parser.add_argument(
+user_update_model = user_auth_ns.model('UserUpdateModel', {
+     'name': fields.String(required=False, description='Nome Completo'),
+     'email': fields.String(required=False, description='Email (único)'),
+     'password': fields.String(required=False, description='Nova Senha'),
+     'role': fields.String(required=False, description='Perfil de acesso')
+})
+
+id_parser = reqparse.RequestParser()
+id_parser.add_argument(
+    'user_id', 
+    type=int, 
+    location='args',  
+    required=True, 
+    help='ID do usuário na Query String (?user_id=X)'
+)
+
+id_parser = reqparse.RequestParser()
+id_parser.add_argument(
     'user_id', 
     type=int, 
     location='args',  
@@ -53,17 +69,17 @@ class CriarUserAuthResource(Resource):
         
 @user_auth_ns.route('/deletar')
 class DeletarUserAuthResource(Resource):
-    @user_auth_ns.expect(delete_parser)
+    @jwt_required
+    @user_auth_ns.expect(id_parser)
     def delete(self):
         """
         Deleta um usuário de autenticação pelo ID (passado como query parameter).
         """
         try:
-            args = delete_parser.parse_args()
+            args = id_parser.parse_args()
             user_id = args['user_id'] 
 
             user_auth_service = UserAuthService()
-            
             user_auth_service.delete_auth_user(user_id)
             
             return {
@@ -77,3 +93,34 @@ class DeletarUserAuthResource(Resource):
         except Exception as e:
             print(f"ERRO INTERNO: {e}") 
             return {'error': 'Erro interno ao deletar usuário.'}, 500
+
+@user_auth_ns.route('/atualizar') 
+class UpdateUserAuthResource(Resource):
+    @jwt_required
+    @user_auth_ns.expect(user_auth_model)
+    @user_auth_ns.expect(id_parser)
+    def put(self):
+        """
+        Atualiza os dados de um usuário de autenticação pelo ID.
+        """
+        try:
+
+            id_args = id_parser.parse_args()
+            user_id = id_args['user_id']
+            
+            user_data = user_auth_ns.payload 
+            
+            if not user_data:
+                 return {'error': 'Nenhum dado fornecido para atualização.'}, 400
+
+            user_auth_service = UserAuthService()
+            results = user_auth_service.update_auth_user(user_id, user_data)
+
+            return {'data': results}, 200
+
+        except UserNotFoundException as unf:
+            return {'error': str(unf)}, 404
+            
+        except Exception as e:
+            print(f"ERRO INTERNO: {e}") 
+            return {'error': 'Erro interno ao atualizar usuário.'}, 500
