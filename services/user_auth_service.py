@@ -54,3 +54,19 @@ class UserAuthService:
             raise UserNotFoundException(f"Usuário com ID {user_id} não foi encontrado.")
             
         return None
+    
+    def update_auth_user(self, user_id: int, user_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Atualiza os dados do usuário, tratando o hash da senha, se necessário.
+        """
+        
+        if 'password' in user_data:
+            password = user_data.pop('password')
+            user_data['password'] = generate_password_hash(password)
+            
+        rows_affected = self.auth_repository.update_user(user_id, user_data)
+        
+        if rows_affected == 0:
+            raise UserNotFoundException(f"Usuário com ID {user_id} não foi encontrado.")
+            
+        return {'id': user_id, 'message': 'Usuário atualizado com sucesso.'}
