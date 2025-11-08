@@ -94,7 +94,7 @@ class DeletarUserAuthResource(Resource):
 
 @user_auth_ns.route('/atualizar') 
 class UpdateUserAuthResource(Resource):
-    @user_auth_ns.expect(user_auth_model)
+    @user_auth_ns.expect(user_update_model)
     @user_auth_ns.expect(id_parser)
     def put(self):
         """
