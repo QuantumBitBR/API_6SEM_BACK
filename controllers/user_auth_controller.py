@@ -17,8 +17,6 @@ user_auth_model = user_auth_ns.model('AuthUserModel', {
 
 user_update_model = user_auth_ns.model('UserUpdateModel', {
      'name': fields.String(required=False, description='Nome Completo'),
-     'email': fields.String(required=False, description='Email (único)'),
-     'password': fields.String(required=False, description='Nova Senha'),
      'role': fields.String(required=False, description='Perfil de acesso')
 })
 
@@ -96,7 +94,6 @@ class DeletarUserAuthResource(Resource):
 
 @user_auth_ns.route('/atualizar') 
 class UpdateUserAuthResource(Resource):
-    @jwt_required
     @user_auth_ns.expect(user_auth_model)
     @user_auth_ns.expect(id_parser)
     def put(self):
@@ -112,6 +109,9 @@ class UpdateUserAuthResource(Resource):
             
             if not user_data:
                  return {'error': 'Nenhum dado fornecido para atualização.'}, 400
+        
+            if any(field in user_data for field in ['email', 'password']):
+                return {'error': 'A edição de email e senha não é permitida neste endpoint.'}, 403
 
             user_auth_service = UserAuthService()
             results = user_auth_service.update_auth_user(user_id, user_data)
