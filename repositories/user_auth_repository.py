@@ -44,3 +44,47 @@ class UserAuthRepository:
             if result:
                 return {'id': result[0], 'email': result[1]} 
             return None
+        
+    def delete_user_by_id(self, user_id: int) -> int:
+        """
+        Deleta um usuário da tabela 'user_authentication' pelo ID.
+        Retorna o número de linhas afetadas (0 ou 1).
+        """
+        sql_delete = """
+            DELETE FROM user_authentication
+            WHERE id = %s;
+        """
+        
+        with get_cursor() as cur:
+            cur.execute(sql_delete, (user_id,))
+            return cur.rowcount
+        
+    def update_user(self, user_id: int, user_data: Dict[str, Any]) -> int:
+        """
+        Atualiza dados de um usuário na tabela 'user_authentication' pelo ID.
+        Retorna o número de linhas afetadas (0 ou 1).
+        """
+        set_parts = []
+        params = []
+        
+        updatable_fields = ['name', 'role', 'email', 'password']
+        
+        for field in updatable_fields:
+            if field in user_data:
+                set_parts.append(f"{field} = %s")
+                params.append(user_data[field])
+
+        if not set_parts:
+            return 0 
+        
+        sql_update = f"""
+            UPDATE user_authentication
+            SET {', '.join(set_parts)}
+            WHERE id = %s;
+        """
+        
+        params.append(user_id)
+        
+        with get_cursor() as cur:
+            cur.execute(sql_update, tuple(params))
+            return cur.rowcount
