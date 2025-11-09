@@ -33,36 +33,8 @@ class UserRepository:
             except Exception as e:
                 return False
 
-    def get_by_id(self, userid):
-        sql_query = """
-            SELECT * FROM users where userid = %s
-        """
-
-        with get_cursor() as cur:
-            cur.execute(sql_query, (userid,))
-            row = cur.fetchone()
-            if row:
-                return row             
-                    
-            return None
+    
         
-    def get_user_authentication_by_id(self, userid):
-        sql_query = """
-            SELECT id,name,role,email
-            FROM user_authentication where id = %s
-        """
-
-        with get_cursor() as cur:
-            cur.execute(sql_query, (userid,))
-            row = cur.fetchone()
-            if row:
-                return {
-                    "id": row[0], 
-                    "name": row[1],
-                    "role":row[2],
-                    "email":row[3],
-                }
-            return None
-        
+    
     
              

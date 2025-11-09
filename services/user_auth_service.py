@@ -70,3 +70,17 @@ class UserAuthService:
             raise UserNotFoundException(f"Usuário com ID {user_id} não foi encontrado.")
             
         return {'id': user_id, 'message': 'Usuário atualizado com sucesso.'}
+    
+    def get_user_authentication_by_id(self, user_id: int) -> Dict[str, Any]:
+        """
+        Busca um usuário de autenticação pelo ID.
+        Levanta UserNotFoundException se o usuário não for encontrado.
+        """
+        
+        user = self.auth_repository.get_user_authentication_by_id(user_id)
+
+        
+        if not user:
+            raise UserNotFoundException(f"Usuário com ID {user_id} não foi encontrado.")
+        
+        return user, 200

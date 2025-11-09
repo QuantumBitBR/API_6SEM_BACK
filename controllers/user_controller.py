@@ -50,13 +50,6 @@ class UserByEmail(Resource):
 
         except Exception as e:
             return {'error': str(e)}, 500
-        
-@users_ns.route("/user-authentication/<int:userid>")
-class UserAuthenticationById(Resource):
-    @jwt_required
-    def get(self, userid):
-        user_service = UserService()
-        result, status = user_service.get_user_authentication_by_id(userid)
-        return result, status
+
     
     
