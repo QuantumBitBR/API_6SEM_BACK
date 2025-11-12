@@ -107,3 +107,4 @@ class UserAuthRepository:
                 }             
                     
             return None
+        

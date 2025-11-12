@@ -133,6 +133,6 @@ class UserAuthenticationById(Resource):
         args = id_parser.parse_args()
         user_id = args['user_id']
         user_service = UserAuthService()
-        result, status = user_service.get_user_authentication_by_id(user_id)
-        return result, status
+        result = user_service.get_user_authentication_by_id(user_id)
+        return result
     
