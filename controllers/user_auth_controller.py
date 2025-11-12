@@ -124,3 +124,15 @@ class UpdateUserAuthResource(Resource):
         except Exception as e:
             print(f"ERRO INTERNO: {e}") 
             return {'error': 'Erro interno ao atualizar usuário.'}, 500
+        
+@user_auth_ns.route("/by_id")
+class UserAuthenticationById(Resource):
+   
+    @user_auth_ns.expect(id_parser)
+    def get(self):
+        args = id_parser.parse_args()
+        user_id = args['user_id']
+        user_service = UserAuthService()
+        result = user_service.get_user_authentication_by_id(user_id)
+        return result
+    

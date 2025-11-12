@@ -88,3 +88,23 @@ class UserAuthRepository:
         with get_cursor() as cur:
             cur.execute(sql_update, tuple(params))
             return cur.rowcount
+        
+    def get_user_authentication_by_id(self, userid: int):
+        sql_query = """
+            SELECT id,name,role,email
+            FROM user_authentication where id = %s
+        """
+
+        with get_cursor() as cur:
+            cur.execute(sql_query, (userid,))
+            row = cur.fetchone()
+            if row:
+                return {
+                    "id": row[0],
+                    "name": row[1],
+                    "role": row[2],
+                    "email": row[3]
+                }             
+                    
+            return None
+        
