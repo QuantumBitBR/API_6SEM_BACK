@@ -88,3 +88,34 @@ class UserAuthRepository:
         with get_cursor() as cur:
             cur.execute(sql_update, tuple(params))
             return cur.rowcount
+
+    def get_all_auth_users(self, limit: int = 10, offset: int = 0) -> list:
+        """
+        Retorna uma lista de todos os usuários na tabela 'user_authentication'.
+        """
+        sql_select = """SELECT id, name, role
+        FROM user_authentication
+        ORDER BY id DESC
+        LIMIT %s OFFSET %s;
+        """
+        with get_cursor() as cur:
+            cur.execute(sql_select, (limit, offset))
+            results = cur.fetchall()
+            return [{
+                'id': row[0],
+                'name': row[1],
+                'role': row[2],
+            } for row in results]
+            return users
+    
+    def count_all_auth_users(self) -> int:
+        """
+        Retorna o número total de usuários na tabela 'user_authentication'.
+        """
+        sql_count = "SELECT COUNT(*) FROM user_authentication;"
+        
+        with get_cursor() as cur:
+            cur.execute(sql_count)
+            total = cur.fetchone()[0]
+            return total
+        

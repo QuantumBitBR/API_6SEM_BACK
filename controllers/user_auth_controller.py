@@ -124,3 +124,27 @@ class UpdateUserAuthResource(Resource):
         except Exception as e:
             print(f"ERRO INTERNO: {e}") 
             return {'error': 'Erro interno ao atualizar usuário.'}, 500
+        
+@user_auth_ns.route('/listar')
+class ListarUserAuthResource(Resource):
+    @jwt_required
+    def get(self):
+        """
+        Retorna uma lista  paginada de todos os usuários de autenticação.
+        """
+        try:
+            page =int(request.args.get('page', 1))
+            per_page = int(request.args.get('per_page', 10))
+            
+            
+            user_auth_service = UserAuthService()
+            result = user_auth_service.get_all_auth_users(page, per_page)
+            
+            
+            return {'data': result}, 200
+        except UserNotFoundException as unf:
+            return {'error': str(unf)}, 404
+
+        except Exception as e:
+            print(f"ERRO INTERNO: {e}") 
+            return {'error': 'Erro interno ao listar usuários.'}, 500

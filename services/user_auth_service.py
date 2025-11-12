@@ -70,3 +70,19 @@ class UserAuthService:
             raise UserNotFoundException(f"Usuário com ID {user_id} não foi encontrado.")
             
         return {'id': user_id, 'message': 'Usuário atualizado com sucesso.'}
+    
+    def get_all_auth_users(self,page: int = 1, per_page: int = 10) -> Dict[str, Any]:
+        """
+        Retorna uma lista paginada de usuários de autenticação.
+        """
+        offset = (page - 1) * per_page
+        users = self.auth_repository.get_all_auth_users(per_page, offset)
+        total_users = self.auth_repository.count_all_auth_users()
+        return {
+            'users': users,
+            'page': page,
+            'per_page': per_page,
+            'total': total_users,
+            'total_pages': (total_users + per_page - 1) // per_page
+        }
+        
