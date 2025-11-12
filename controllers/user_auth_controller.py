@@ -11,11 +11,10 @@ user_auth_ns = Namespace(
 user_auth_model = user_auth_ns.model('AuthUserModel', {
      'name': fields.String(required=True, description='Nome Completo'),
      'email': fields.String(required=True, description='Email (único)'),
-     'password': fields.String(required=True, description='Senha (será hasheada)'),
      'role': fields.String(required=False, default='user', description='Perfil de acesso (ex: admin, user)')
 })
 
-user_update_model = user_auth_ns.model('UserUpdateModel', {
+user_update_model = user_auth_ns.model('UserUpdateModel', { 
      'name': fields.String(required=False, description='Nome Completo'),
      'role': fields.String(required=False, description='Perfil de acesso')
 })
@@ -40,7 +39,6 @@ id_parser.add_argument(
 
 @user_auth_ns.route('/criar') 
 class CriarUserAuthResource(Resource):
-    @jwt_required
     @user_auth_ns.expect(user_auth_model)
     def post(self):
         """
@@ -94,6 +92,7 @@ class DeletarUserAuthResource(Resource):
 
 @user_auth_ns.route('/atualizar') 
 class UpdateUserAuthResource(Resource):
+    @jwt_required
     @user_auth_ns.expect(user_update_model)
     @user_auth_ns.expect(id_parser)
     def put(self):
