@@ -1,6 +1,64 @@
 from repositories.user_auth_repository import UserAuthRepository
 from werkzeug.security import generate_password_hash
 from typing import Dict, Any
+import random, string, re 
+
+import smtplib
+from email.message import EmailMessage
+from os import environ
+
+
+sender_email = environ['SENDER_EMAIL']
+app_password = environ['APP_PASSWORD']
+
+def send_password_email(receiver_email: str, password: str) -> None:
+    """
+    Envia a senha temporária para o usuário via Gmail SMTP.
+    """
+    try:
+        msg = EmailMessage()
+        msg['Subject'] = 'Sua Senha Temporária de Acesso'
+        msg['From'] = sender_email
+        msg['To'] = receiver_email
+        
+        body = f"""
+        Olá,
+        
+        Seu registro foi concluído com sucesso.
+        
+        Use a senha temporária abaixo para o seu primeiro login:
+        
+        Senha Temporária: {password}
+        
+        Por motivos de segurança, recomendamos que você altere sua senha imediatamente após o login.
+        
+        Atenciosamente,
+        Sua Equipe de Suporte
+        """
+        msg.set_content(body)
+
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(sender_email, app_password)
+            server.send_message(msg)
+            
+        print(f"\n--- SUCESSO: Email enviado para {receiver_email} ---\n")
+        
+    except Exception as e:
+        print(f"\n--- ERRO AO ENVIAR EMAIL ---")
+        print(f"Erro: {e}")
+        raise RuntimeError(f"Falha ao enviar e-mail: {e}")
+
+def generate_random_password(length=12) -> str:
+    """Gera uma senha aleatória com letras, números e símbolos."""
+    characters = string.ascii_letters + string.digits + string.punctuation
+    password = ''.join(random.choice(characters) for i in range(length))
+    return password
+
+def is_valid_email(email: str) -> bool:
+    """Valida o formato de um email usando regex simples."""
+    regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.fullmatch(regex, email)
 
 class UserNotFoundException(Exception):
     pass
@@ -18,10 +76,14 @@ class UserAuthService:
         Inclui a CRUCIAL lógica de HASH de senha.
         """
         
-        required_fields = ['name', 'email', 'password']
+        required_fields = ['name', 'email']
         for field in required_fields:
             if not user_data.get(field):
                 raise ValueError(f"O campo '{field}' é obrigatório.")
+            
+        email = user_data['email']
+        if not is_valid_email(email):
+             raise ValueError("O formato do e-mail fornecido é inválido.")
         
         existing_user = self.auth_repository.get_user_by_email(user_data['email'])
         
@@ -30,17 +92,20 @@ class UserAuthService:
                 
         user_data['role'] = user_data.get('role', 'user')
         
-        password = user_data.pop('password') # Não precisa de .encode('utf-8')
-        
-        hashed_password = generate_password_hash(password)
+        temp_password = generate_random_password() 
+        hashed_password = generate_password_hash(temp_password)
 
         user_data['hashed_password'] = hashed_password
         
-        user_data['role'] = user_data.get('role', 'user')
-             
         new_auth_user_id = self.auth_repository.create_auth_user(user_data)
         
-        return {'id': new_auth_user_id, 'message': 'Usuário de autenticação criado com sucesso.'}
+        receiver_email = user_data['email']
+        send_password_email(receiver_email, temp_password) 
+
+        return {
+            'id': new_auth_user_id, 
+            'message': 'Usuário de autenticação criado. Senha temporária enviada por email.'
+        }
     
     def delete_auth_user(self, user_id: int) -> None:
         """
