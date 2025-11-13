@@ -108,3 +108,18 @@ class UserAuthRepository:
                     
             return None
         
+    def get_password_hash_by_id(self, user_id: int) -> Optional[str]:
+        """
+        Busca a senha hashada de um usuário pelo ID.
+        Retorna a string hashada ou None se o usuário não for encontrado.
+        """
+        sql_select = "SELECT password FROM user_authentication WHERE id = %s;"
+        
+        with get_cursor() as cur:
+            cur.execute(sql_select, (user_id,))
+            result = cur.fetchone()
+            
+            if result:
+                return result[0] 
+            return None
+        
