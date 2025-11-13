@@ -19,6 +19,11 @@ user_update_model = user_auth_ns.model('UserUpdateModel', {
      'role': fields.String(required=False, description='Perfil de acesso')
 })
 
+change_password_user_auth_model = user_auth_ns.model('ChangePasswordModel', {
+     'old_password': fields.String(required=True, description='Senha antiga'),
+     'new_password': fields.String(required=True, description='Nova senha')
+})
+
 id_parser = reqparse.RequestParser()
 id_parser.add_argument(
     'user_id', 
@@ -94,8 +99,7 @@ class DeletarUserAuthResource(Resource):
 @user_auth_ns.route('/atualizar') 
 class UpdateUserAuthResource(Resource):
     @jwt_required
-    @user_auth_ns.expect(user_update_model)
-    @user_auth_ns.expect(id_parser)
+    @user_auth_ns.expect(id_parser,user_update_model)
     def put(self):
         """
         Atualiza os dados de um usuário de autenticação pelo ID.
@@ -139,7 +143,7 @@ class UserAuthenticationById(Resource):
 @user_auth_ns.route('/trocar-senha')
 class ChangeUserPasswordResource(Resource):
     @jwt_required
-    @user_auth_ns.expect(id_parser)
+    @user_auth_ns.expect(id_parser,change_password_user_auth_model)
     def patch(self):
         """
         Altera a senha de um usuário de autenticação.
