@@ -138,8 +138,9 @@ class UserAuthenticationById(Resource):
     
 @user_auth_ns.route('/trocar-senha')
 class ChangeUserPasswordResource(Resource):
+    @jwt_required
     @user_auth_ns.expect(id_parser)
-    def post(self):
+    def patch(self):
         """
         Altera a senha de um usuário de autenticação.
         Espera um JSON com 'old_password' e 'new_password'.
