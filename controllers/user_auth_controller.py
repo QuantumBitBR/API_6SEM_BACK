@@ -1,7 +1,7 @@
 from flask_restx import Resource, fields, Namespace, reqparse
 from flask import request
 from config.auth import jwt_required
-from services.user_auth_service import UserAuthService, UserAlreadyExistsError, UserNotFoundException
+from services.user_auth_service import UserAuthService, UserAlreadyExistsError, UserNotFoundException, InvalidCredentialsException
 
 
 user_auth_ns = Namespace(
@@ -39,6 +39,7 @@ id_parser.add_argument(
 
 @user_auth_ns.route('/criar') 
 class CriarUserAuthResource(Resource):
+    @jwt_required
     @user_auth_ns.expect(user_auth_model)
     def post(self):
         """
@@ -126,7 +127,7 @@ class UpdateUserAuthResource(Resource):
         
 @user_auth_ns.route("/by_id")
 class UserAuthenticationById(Resource):
-   
+    @jwt_required
     @user_auth_ns.expect(id_parser)
     def get(self):
         args = id_parser.parse_args()
@@ -135,3 +136,37 @@ class UserAuthenticationById(Resource):
         result = user_service.get_user_authentication_by_id(user_id)
         return result
     
+@user_auth_ns.route('/trocar-senha')
+class ChangeUserPasswordResource(Resource):
+    @user_auth_ns.expect(id_parser)
+    def post(self):
+        """
+        Altera a senha de um usuário de autenticação.
+        Espera um JSON com 'old_password' e 'new_password'.
+        """
+        try:
+            id_args = id_parser.parse_args()
+            user_id = id_args['user_id']
+            
+            data = request.get_json()
+            old_password = data.get('old_password')
+            new_password = data.get('new_password')
+            
+            if not old_password or not new_password:
+                return {'error': 'As senhas antiga e nova são obrigatórias.'}, 400
+            
+            user_auth_service = UserAuthService()
+            results = user_auth_service.change_user_authentication_password(
+                user_id, old_password, new_password)
+            
+            return {'data': results}, 200
+
+        except UserNotFoundException as unf:
+            return {'error': str(unf)}, 404
+        
+        except InvalidCredentialsException as ice:
+            return {'error': str(ice)}, 401
+            
+        except Exception as e:
+            print(f"ERRO INTERNO: {e}") 
+            return {'error': 'Erro interno ao alterar senha do usuário.'}, 500

@@ -1,5 +1,5 @@
 from repositories.user_auth_repository import UserAuthRepository
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from typing import Dict, Any
 import random, string, re 
 
@@ -64,6 +64,9 @@ class UserNotFoundException(Exception):
     pass
 
 class UserAlreadyExistsError(Exception):
+    pass
+
+class InvalidCredentialsException(Exception):
     pass
 
 class UserAuthService:
@@ -155,4 +158,27 @@ class UserAuthService:
             return {
                 "error": "Erro interno do servidor"
             }, 500
+        
+
+    def change_user_authentication_password(self, user_id: int, old_password: str, new_password: str) -> Dict[str, Any]:
+        """
+        Altera a senha de um usuário, verificando a senha antiga.
+        """
+        current_hash = self.auth_repository.get_password_hash_by_id(user_id)
+
+        if not current_hash:
+            raise UserNotFoundException(f"Usuário com ID {user_id} não foi encontrado.")
+
+        if not check_password_hash(current_hash, old_password):
+            raise InvalidCredentialsException("Senha antiga incorreta.")
+            
+        hashed_password = generate_password_hash(new_password)
+        user_data = {'password': hashed_password} 
+        
+        rows_affected = self.auth_repository.update_user(user_id, user_data)
+        
+        if rows_affected == 0:
+            raise UserNotFoundException(f"Falha ao atualizar senha. Usuário com ID {user_id} não encontrado.")
+            
+        return {'id': user_id, 'message': 'Senha alterada com sucesso.'}
             
