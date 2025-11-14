@@ -7,7 +7,6 @@ from werkzeug.security import check_password_hash
 from services.user_service import UserService
 from services.privacy_policy_service import PrivacyPolicyService
 
-
 def generate_token(user):
     """Gera JWT para o usuário"""
     payload = {
@@ -73,12 +72,18 @@ def auth():
         token = generate_token(user)
         # usa check_policy_terms separado
         policy_info = check_policy_terms(user.id)
-
-        return {
-            'user_id': user.id,
-            'token': token,
-            **policy_info   # junta os dados de política no retorno
-        }, 200
+        privacy_police_service = PrivacyPolicyService()
+        response = privacy_police_service.get_is_assigned_unmandatory_policy(user.id)
+        
+        if response[1] == 200:
+            return {
+                'user_id': user.id,
+                'token': token,
+                **policy_info,   # junta os dados de política no retorno
+                'is_accept_unmandatory': response[0]['data']['is_accept']
+            }, 200
+        else:
+            return {'message': 'could not verify', 'WWW-Authenticate': 'Basic auth="Login required"'}, 401
 
     return {'message': 'could not verify', 'WWW-Authenticate': 'Basic auth="Login required"'}, 401
 
