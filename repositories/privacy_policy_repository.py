@@ -122,3 +122,35 @@ class PrivacyPolicyRepository:
                 return response
         except Exception as e:
             raise TypeError("Erro ao tentar buscar os  dados")
+
+    def get_privacy_unmandatory_privacy_by_user(self, userid: int):
+        sql_query = """
+            SELECT p.id, p.is_mandatory, u.is_revoke
+            FROM privacy_policy_version p
+            LEFT JOIN privacy_policy_version_accept u 
+                ON p.id = u.id_privacy_policy 
+            AND u.id_user = %s
+            WHERE p.is_mandatory = false
+            ORDER BY p.validity_date
+        """
+
+        try:
+            with get_cursor() as cur:
+                cur.execute(sql_query, (userid,))
+                registros = cur.fetchall()
+
+                if not registros:
+                    return True
+
+                for row in registros:
+                    is_revoke = row[2]
+
+                    if is_revoke is None:
+                        return False
+
+                    if is_revoke is True:
+                        return False
+                return True
+
+        except Exception as error:
+            raise TypeError("Erro ao tentar buscar os dados")
