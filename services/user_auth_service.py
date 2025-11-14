@@ -6,6 +6,8 @@ import random, string, re
 import smtplib
 from email.message import EmailMessage
 from os import environ
+from dotenv import load_dotenv
+load_dotenv()
 
 
 sender_email = environ['SENDER_EMAIL']
@@ -181,4 +183,34 @@ class UserAuthService:
             raise UserNotFoundException(f"Falha ao atualizar senha. Usuário com ID {user_id} não encontrado.")
             
         return {'id': user_id, 'message': 'Senha alterada com sucesso.'}
+    
+
+    def reset_user_password_and_send_email(self, user_id: int) -> Dict[str, Any]:
+        """
+        Gera uma nova senha aleatória, atualiza o banco e envia por e-mail.
+        """
+        recipient_email = self.auth_repository.get_user_email_by_id(user_id)
+        
+        if not recipient_email:
+            raise UserNotFoundException(f"Usuário com ID {user_id} não foi encontrado.")
+
+        new_password = generate_random_password()
+        
+        hashed_password = generate_password_hash(new_password)
+        user_data = {'password': hashed_password}
+        
+        rows_affected = self.auth_repository.update_user(user_id, user_data)
+        
+        if rows_affected == 0:
+            raise Exception("Falha interna ao atualizar a senha no banco de dados.")
+        
+        try :
+            send_password_email(recipient_email, new_password)
+        except Exception as e:
+            raise Exception("Senha atualizada, mas falha ao enviar e-mail.") from e
+            
+        return {
+            'id': user_id, 
+            'message': 'Uma nova senha foi gerada e enviada para o e-mail do usuário.'
+        }
             

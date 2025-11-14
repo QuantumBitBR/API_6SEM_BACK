@@ -175,3 +175,28 @@ class ChangeUserPasswordResource(Resource):
         except Exception as e:
             print(f"ERRO INTERNO: {e}") 
             return {'error': 'Erro interno ao alterar senha do usuário.'}, 500
+        
+@user_auth_ns.route('/resetar-senha') 
+class ResetPasswordResource(Resource):
+    @jwt_required
+    @user_auth_ns.expect(id_parser)
+    def post(self):
+        """
+        Redefine a senha do usuário para um valor aleatório e envia por e-mail.
+        """
+        try:
+            id_args = id_parser.parse_args()
+            user_id = id_args['user_id']
+            
+            user_auth_service = UserAuthService()
+            
+            results = user_auth_service.reset_user_password_and_send_email(user_id)
+            
+            return {'data': results}, 200
+
+        except UserNotFoundException as unf:
+            return {'error': str(unf)}, 404
+            
+        except Exception as e:
+            print(f"ERRO INTERNO: {e}") 
+            return {'error': str(e)}, 500

@@ -123,3 +123,20 @@ class UserAuthRepository:
                 return result[0] 
             return None
         
+
+    # endpoint para enviar email com uma nova senha temporaria para um usuario buscando por id
+    def get_user_email_by_id(self, user_id: int) -> Optional[str]:
+        """
+        Busca o email de um usuário pelo ID.
+        Retorna a string do email ou None se o usuário não for encontrado.
+        """
+        sql_select = "SELECT email FROM user_authentication WHERE id = %s;"
+        
+        with get_cursor() as cur:
+            cur.execute(sql_select, (user_id,))
+            result = cur.fetchone()
+            
+            if result:
+                # Retorna apenas o email
+                return result[0] 
+            return None
