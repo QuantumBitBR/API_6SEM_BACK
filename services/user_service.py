@@ -18,10 +18,6 @@ class UserService:
             }, 404
         
         return response, 200
-    
-    
-        
-        return response, 200
 
     def delete_data_user(self, userid):
         user, status = self.get_user_by_id(userid)
@@ -38,3 +34,13 @@ class UserService:
 
     def user_by_email(self, email):
         return User.query.filter(User.email == email)
+
+    def get_user_authentication_by_id(self, userid):
+        response = self.user_repository.get_user_authentication_by_id(userid)
+        
+        if response == None:
+            return {
+                "error": "User not found"
+            }, 404
+        
+        return response, 200
