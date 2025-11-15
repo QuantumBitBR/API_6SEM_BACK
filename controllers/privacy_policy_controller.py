@@ -82,3 +82,21 @@ class GetPrivacyPolicyByUser(Resource):
             return response
         except Exception:
             return {"error": "Algo ocorreu errado."}, 500
+        
+@privacy_policy_ns.route("/get-accept-unmandatory")
+@privacy_policy_ns.doc(params={
+        'userid': {
+            'description': 'Id do usuário que gostaria de buscar',
+            'type': 'int',
+            'required': True
+        }
+    })
+class GetUnmandatoryByUser(Resource):
+    def get(self):
+        try:
+            service = PrivacyPolicyService()
+            userid = request.args.get("userid", type=int)
+            response = service.get_is_assigned_unmandatory_policy(userid)
+            return response
+        except Exception:
+            return {"error": "Algo ocorreu errado."}, 500
