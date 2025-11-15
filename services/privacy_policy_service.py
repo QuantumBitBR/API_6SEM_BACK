@@ -22,7 +22,7 @@ class PrivacyPolicyService:
             if user[1] == 404:
                 return user
             response = self.privacy_repository.get_all_privacy_by_user(userid)
-            return {"data": [{"id": id, "text": text,"validity_date": validity_date.strftime("%d/%m/%Y %H:%M:%S") if validity_date else None, "is_mandatory": is_mandatory if is_mandatory != None else False,"is_accept": is_revoke if is_revoke != None else False} for id, text, validity_date, is_mandatory, is_revoke in response]}, 200
+            return {"data": [{"id": id, "text": text,"validity_date": validity_date.strftime("%d/%m/%Y %H:%M:%S") if validity_date else None, "is_mandatory": is_mandatory if is_mandatory != None else False,"is_accept": not is_revoke if is_revoke != None else False} for id, text, validity_date, is_mandatory, is_revoke in response]}, 200
         except Exception as e:
 
             return {
