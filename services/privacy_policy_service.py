@@ -24,6 +24,7 @@ class PrivacyPolicyService:
             response = self.privacy_repository.get_all_privacy_by_user(userid)
             return {"data": [{"id": id, "text": text,"validity_date": validity_date.strftime("%d/%m/%Y %H:%M:%S") if validity_date else None, "is_mandatory": is_mandatory if is_mandatory != None else False,"is_accept": is_revoke if is_revoke != None else False} for id, text, validity_date, is_mandatory, is_revoke in response]}, 200
         except Exception as e:
+
             return {
                 "error": "Algo ocorreu errado"
             }, 500
@@ -80,3 +81,15 @@ class PrivacyPolicyService:
             return {"message": "Criado com sucesso"}, 201
         
         return {"error": "Algo ocorreu errado"}, 500
+    def get_is_assigned_unmandatory_policy(self, userid: int):
+        try:
+            response = self.privacy_repository.get_privacy_unmandatory_privacy_by_user(userid)
+            return {"data": {
+                        "is_accept": response
+                    }
+                }, 200
+        except Exception:
+            return {
+                "error": "Algo ocorreu errado"
+            }, 500
+    
