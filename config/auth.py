@@ -36,7 +36,9 @@ def check_policy_terms(user_id):
     """
     privacy_service = PrivacyPolicyService()
     current_policy = privacy_service.get_current_privacy()
-    last_policy = privacy_service.get_last_user_accept(user_id)
+    if(current_policy):
+
+        last_policy = privacy_service.get_last_user_accept(user_id, current_policy[0])
     policy_expired = True
     if last_policy and current_policy:
         policy_expired = current_policy[0] != last_policy[1]
