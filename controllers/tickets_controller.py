@@ -25,6 +25,7 @@ filter_parser.add_argument('category_id', type=int, action='split', help='IDs da
 filter_parser.add_argument('priority_id', type=int, action='split', help='IDs das prioridades (separados por vírgula)', required=False)
 filter_parser.add_argument('createdat', type=str, help='Data de início do período (YYYY-MM-DD)', required=False)
 filter_parser.add_argument('end_date', type=str, help='Data final do período (YYYY-MM-DD)', required=False)
+filter_parser.add_argument('page', type=int, help='Número da página para paginação', required=False, default=1)
 
 def make_cache_key_with_filters():
     return request.url
@@ -222,13 +223,55 @@ class TicketCategories(Resource):
     @jwt_required
     @tickets_ns.expect(filter_parser)
     def get(self):
-        """Retorna todas as categorias de tickets."""
+        """Retorna todas as categorias de tickets, opcionalmente filtradas."""
+        
         tickets_service = TicketsService()
-        result = tickets_service.get_all_categories()
-        return {"data": result}
+        args = filter_parser.parse_args()
+        
+        result = tickets_service.get_all_categories(
+            company_id=args.get('company_id'),
+            product_id=args.get('product_id'),
+            priority_id=args.get('priority_id'),
+            createdat=args.get('createdat'),
+            end_date=args.get('end_date')
+        )
+        return {"data": result}, 200
+    
+
+@tickets_ns.route('/tickets-details')
+class AllTickets(Resource):
+    @jwt_required
+    @tickets_ns.expect(filter_parser)
+    def get(self):
+        """
+        Retorna todos os tickets com detalhes relacionados, campos descriptografados,
+        aplicando filtros e paginação.
+        """
+        try:
+            tickets_service = TicketsService()
+            args = filter_parser.parse_args()
+            
+            all_tickets_data = tickets_service.get_all_tickets_details(
+                company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date'),
+                page=args.get('page', 1),    
+                limit=args.get('limit', 50)   
+            )
+            return {
+                'dados': all_tickets_data
+            }, 200
+
+        except Exception as e:
+            return {'error': str(e)}, 500
+    
     
 @tickets_ns.route('/report')
 class TicketsReport(Resource):
+    @jwt_required
     @tickets_ns.expect(filter_parser) 
     def get(self):
         """Gera um relatório completo de tickets."""
