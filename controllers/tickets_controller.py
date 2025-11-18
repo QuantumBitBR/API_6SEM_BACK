@@ -221,7 +221,46 @@ class TicketCategories(Resource):
     @jwt_required
     @tickets_ns.expect(filter_parser)
     def get(self):
-        """Retorna todas as categorias de tickets."""
+        """Retorna todas as categorias de tickets, opcionalmente filtradas."""
+        
         tickets_service = TicketsService()
-        result = tickets_service.get_all_categories()
-        return {"data": result}
+        args = filter_parser.parse_args()
+        
+        result = tickets_service.get_all_categories(
+            company_id=args.get('company_id'),
+            product_id=args.get('product_id'),
+            priority_id=args.get('priority_id'),
+            createdat=args.get('createdat'),
+            end_date=args.get('end_date')
+        )
+        return {"data": result}, 200
+    
+
+@tickets_ns.route('/tickets-details')
+class AllTickets(Resource):
+    @tickets_ns.expect(filter_parser)
+    def get(self):
+        """
+        Retorna todos os tickets com detalhes relacionados, campos descriptografados,
+        aplicando filtros e paginação.
+        """
+        try:
+            tickets_service = TicketsService()
+            args = filter_parser.parse_args()
+            
+            all_tickets_data = tickets_service.get_all_tickets_details(
+                company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date'),
+                page=args.get('page', 1),    
+                limit=args.get('limit', 50)   
+            )
+            return {
+                'dados': all_tickets_data
+            }, 200
+
+        except Exception as e:
+            return {'error': str(e)}, 500

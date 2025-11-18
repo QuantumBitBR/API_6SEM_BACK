@@ -15,7 +15,7 @@ def get_cursor():
         password=environ['DB_PASSWORD']
     )
     try:
-        with conn.cursor() as cur:
+        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
             yield cur  
         conn.commit()
     finally:
