@@ -2,6 +2,7 @@ from flask_restx import Namespace, Resource, fields, reqparse
 from flask import request
 from services.tickets_service import TicketsService
 from config.auth import jwt_required
+from services.report_service import ReportService
 
 from config.extensions import cache
 import time 
@@ -225,3 +226,21 @@ class TicketCategories(Resource):
         tickets_service = TicketsService()
         result = tickets_service.get_all_categories()
         return {"data": result}
+    
+@tickets_ns.route('/report')
+class TicketsReport(Resource):
+    @tickets_ns.expect(filter_parser) 
+    def get(self):
+        """Gera um relatório completo de tickets."""
+        try:
+            report_service = ReportService()
+            args = filter_parser.parse_args()
+            report = report_service.generate_report(company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date'))
+            return {"data": report}, 200
+        except Exception as e:
+            return {'error': str(e)}, 500
