@@ -24,6 +24,7 @@ filter_parser.add_argument('category_id', type=int, action='split', help='IDs da
 filter_parser.add_argument('priority_id', type=int, action='split', help='IDs das prioridades (separados por vírgula)', required=False)
 filter_parser.add_argument('createdat', type=str, help='Data de início do período (YYYY-MM-DD)', required=False)
 filter_parser.add_argument('end_date', type=str, help='Data final do período (YYYY-MM-DD)', required=False)
+filter_parser.add_argument('page', type=int, help='Número da página para paginação', required=False, default=1)
 
 def make_cache_key_with_filters():
     return request.url
@@ -238,6 +239,7 @@ class TicketCategories(Resource):
 
 @tickets_ns.route('/tickets-details')
 class AllTickets(Resource):
+    @jwt_required
     @tickets_ns.expect(filter_parser)
     def get(self):
         """
