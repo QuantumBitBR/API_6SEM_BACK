@@ -141,6 +141,23 @@ class UserAuthService:
             
         return {'id': user_id, 'message': 'Usuário atualizado com sucesso.'}
     
+
+    def get_all_auth_users(self,page: int = 1, per_page: int = 10) -> Dict[str, Any]:
+        """
+        Retorna uma lista paginada de usuários de autenticação.
+        """
+        offset = (page - 1) * per_page
+        users = self.auth_repository.get_all_auth_users(per_page, offset)
+        total_users = self.auth_repository.count_all_auth_users()
+        return {
+            'users': users,
+            'page': page,
+            'per_page': per_page,
+            'total': total_users,
+            'total_pages': (total_users + per_page - 1) // per_page
+        }
+        
+
     def get_user_authentication_by_id(self, user_id: int) -> Dict[str, Any]:
         """
         Busca um usuário de autenticação pelo ID.
@@ -214,3 +231,4 @@ class UserAuthService:
             'message': 'Uma nova senha foi gerada e enviada para o e-mail do usuário.'
         }
             
+
