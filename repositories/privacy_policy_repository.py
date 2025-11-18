@@ -60,15 +60,15 @@ class PrivacyPolicyRepository:
             cur.execute(sql_query)
             return cur.fetchone()
         
-    def get_last_user_accept(self, userid):
+    def get_last_user_accept(self, userid, idprivacy):
         sql_query = """
             SELECT * FROM privacy_policy_version_accept 
-            WHERE id_user = %s 
+            WHERE id_user = %s and id_privacy_policy = %s
             ORDER BY validity_date DESC 
             LIMIT 1;
         """
         with get_cursor() as cur:
-            cur.execute(sql_query, (userid,))
+            cur.execute(sql_query, (userid,idprivacy))
             return cur.fetchone()
         
     def get_last_policy_user_accept(self, userid, privacy_id):
@@ -109,16 +109,62 @@ class PrivacyPolicyRepository:
 
     def get_all_privacy_by_user(self, userid:int):
         sql_query = """
+        (
             SELECT p.id, p.text, p.validity_date, p.is_mandatory, u.is_revoke
-            FROM privacy_policy_version p LEFT JOIN 
-            privacy_policy_version_accept u on p.id = u.id_privacy_policy AND u.id_user = %s
+            FROM privacy_policy_version p
+            LEFT JOIN privacy_policy_version_accept u 
+                ON p.id = u.id_privacy_policy AND u.id_user = %s
+            WHERE p.is_mandatory = TRUE
+            ORDER BY p.validity_date DESC
+            LIMIT 1
+        )
+        UNION ALL
+        (
+            SELECT p.id, p.text, p.validity_date, p.is_mandatory, u.is_revoke
+            FROM privacy_policy_version p
+            LEFT JOIN privacy_policy_version_accept u 
+                ON p.id = u.id_privacy_policy AND u.id_user = %s
+            WHERE p.is_mandatory = FALSE
+        )
+        ORDER BY validity_date;
+    """
+
+        try:
+            with get_cursor() as cur:
+                cur.execute(sql_query, (userid,userid))
+                response = cur.fetchall()
+                return response
+        except Exception as e:
+            raise TypeError("Erro ao tentar buscar os  dados")
+
+    def get_privacy_unmandatory_privacy_by_user(self, userid: int):
+        sql_query = """
+            SELECT p.id, p.is_mandatory, u.is_revoke
+            FROM privacy_policy_version p
+            LEFT JOIN privacy_policy_version_accept u 
+                ON p.id = u.id_privacy_policy 
+            AND u.id_user = %s
+            WHERE p.is_mandatory = false
             ORDER BY p.validity_date
         """
 
         try:
             with get_cursor() as cur:
                 cur.execute(sql_query, (userid,))
-                response = cur.fetchall()
-                return response
-        except Exception as e:
-            raise TypeError("Erro ao tentar buscar os  dados")
+                registros = cur.fetchall()
+
+                if not registros:
+                    return True
+
+                for row in registros:
+                    is_revoke = row[2]
+
+                    if is_revoke is None:
+                        return False
+
+                    if is_revoke is True:
+                        return False
+                return True
+
+        except Exception as error:
+            raise TypeError("Erro ao tentar buscar os dados")
