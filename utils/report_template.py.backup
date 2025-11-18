@@ -1,10 +1,10 @@
-chat_template = f'''
+chat_template = f"""
 ---
 **Contextualização:**
 
 O objetivo deste processo é gerar um **único relatório consolidado** sobre o histórico de reclamações dos usuários para o suporte de uma empresa. 
-Enviarei um dicionário contendo informações dessas reclamações dividas em 7 categorias: prioridade, status, empresa, produto, departamento, plano de SLA e categoria. 
-Cada categoria contém listas de dados agregados, como o número de reclamações por empresa, produto, categoria, entre outros. Com esses dados consolidados, você deverá gerar um relatório formal e padronizado que ofereça uma visão geral da situação das reclamações.
+Enviarei uma lista contendo informações dessas reclamações com diferentes datas e produtos. Com esses dados consolidados, 
+você deverá gerar um relatório formal e padronizado que ofereça uma visão geral da situação das reclamações.
 
 ---
 **Definição de Padrões:**
@@ -36,9 +36,10 @@ Com base nos dados fornecidos, crie uma breve descrição do relatório, incluin
 ### Informações sobre prioridade:
 * Categoria com maior número de reclamações: <campo: top_complaint_category>
 * Produto mais reclamado: <campo: top_complaint_product>
+* Mês com maior número de reclamações: <campo: top_complaint_month>
 * Total de reclamações: <campo: total_complaints>
 
 ### Recomendações:
 Com base na análise dos dados, apresente no máximo 5 recomendações em formato de tópicos para identificar produtos e empresas com maiores números de reclamações.
-'''
+"""
 

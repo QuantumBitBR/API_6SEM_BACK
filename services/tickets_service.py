@@ -269,3 +269,9 @@ class TicketsService:
         filter_kwargs['limit'] = limit
 
         return self.tickets_repository.get_all_tickets_details(**filter_kwargs)
+    
+    def get_all_categories(self):
+        """Busca todas as categorias de tickets."""
+        categories = self.tickets_repository.get_all_categories()
+        return [{"category_id": cat_id, "category_name": cat_name} for cat_id, cat_name in categories]
+    
