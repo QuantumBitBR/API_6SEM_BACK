@@ -229,11 +229,18 @@ class TicketCategories(Resource):
     
 @tickets_ns.route('/report')
 class TicketsReport(Resource):
+    @tickets_ns.expect(filter_parser) 
     def get(self):
         """Gera um relatório completo de tickets."""
         try:
             report_service = ReportService()
-            report = report_service.generate_report()
+            args = filter_parser.parse_args()
+            report = report_service.generate_report(company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date'))
             return {"data": report}, 200
         except Exception as e:
             return {'error': str(e)}, 500
