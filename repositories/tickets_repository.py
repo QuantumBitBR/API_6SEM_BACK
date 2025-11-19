@@ -471,10 +471,12 @@ class TicketsRepository:
         sql_query = """
             SELECT
                 t.ticketid,
-                t.title_without_encrypt,
-                t.description_without_encrypt,
+                t.title_without_encrypt as title,
+                t.description_without_encrypt as description,
                 c.name AS company_name,
-                t.channel,
+                p.name AS product_name,
+                stat.name AS status_name,
+                t.channel as channel,
                 t.device,
                 prio.name AS priority_name,
                 ca.name AS category_name,
@@ -489,6 +491,10 @@ class TicketsRepository:
                 priorities prio ON t.priorityid = prio.priorityid
             JOIN
                 categories ca ON t.categoryid = ca.categoryid
+            JOIN
+                products p ON t.productid = p.productid
+            JOIN
+                statuses stat ON t.currentstatusid = stat.statusid
             LEFT JOIN 
                 subcategories sub ON t.subcategoryid = sub.subcategoryid
             """ + sql_where + """ 
@@ -507,15 +513,17 @@ class TicketsRepository:
 
             for row in tickets_data:
                 results.append({
-                    "id_ticket": row['ticketid'],
-                    "title_ticket": row['title_without_encrypt'],
-                    "description_ticket": row['description_without_encrypt'],
-                    "company": row['company_name'],
+                    "ticketid": row['ticketid'],
+                    "title": row['title'],
+                    "description": row['description'],
+                    "company_name": row['company_name'],
+                    "product_name": row['product_name'],
+                    "status_name": row['status_name'],
                     "channel": row['channel'],
                     "device": row['device'],
-                    "prioridade": row['priority_name'],
-                    "categoria": row['category_name'],
-                    "subcategoria": row['subcategory_name'] if row['subcategory_name'] else None 
+                    "priority_name": row['priority_name'],
+                    "category_name": row['category_name'],
+                    "subcategory_name": row['subcategory_name'] if row['subcategory_name'] else None 
                 })
                 
         return {
