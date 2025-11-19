@@ -223,24 +223,14 @@ class TicketCategories(Resource):
     @jwt_required
     @tickets_ns.expect(filter_parser)
     def get(self):
-        """Retorna todas as categorias de tickets, opcionalmente filtradas."""
-        
+        """Retorna todas as categorias de tickets."""
         tickets_service = TicketsService()
-        args = filter_parser.parse_args()
-        
-        result = tickets_service.get_all_categories(
-            company_id=args.get('company_id'),
-            product_id=args.get('product_id'),
-            priority_id=args.get('priority_id'),
-            createdat=args.get('createdat'),
-            end_date=args.get('end_date')
-        )
-        return {"data": result}, 200
+        result = tickets_service.get_all_categories()
+        return {"data": result}
     
 
 @tickets_ns.route('/tickets-details')
 class AllTickets(Resource):
-    @jwt_required
     @tickets_ns.expect(filter_parser)
     def get(self):
         """
@@ -262,7 +252,7 @@ class AllTickets(Resource):
                 limit=args.get('limit', 50)   
             )
             return {
-                'dados': all_tickets_data
+                'data': all_tickets_data
             }, 200
 
         except Exception as e:
@@ -271,7 +261,6 @@ class AllTickets(Resource):
     
 @tickets_ns.route('/report')
 class TicketsReport(Resource):
-    @jwt_required
     @tickets_ns.expect(filter_parser) 
     def get(self):
         """Gera um relatório completo de tickets."""
