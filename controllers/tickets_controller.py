@@ -287,3 +287,44 @@ class TicketsReport(Resource):
             return {"data": report}, 200
         except Exception as e:
             return {'error': str(e)}, 500
+        
+
+@tickets_ns.route('/report/pdf')
+class TicketsReport(Resource):
+    @tickets_ns.expect(filter_parser) 
+    def get(self):
+        """Gera um relatório completo de tickets."""
+        try:
+            report_service = ReportService()
+            args = filter_parser.parse_args()
+
+            report_text = report_service.generate_report(
+                company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date')
+            )
+
+            buffer = BytesIO()
+            pdf = canvas.Canvas(buffer)
+
+            y = 800
+            for line in report_text.split("\n"):
+                pdf.drawString(40, y, line)
+                y -= 15
+                if y < 40:
+                    pdf.showPage()
+                    y = 800
+
+            pdf.save()
+            buffer.seek(0)
+
+            response = make_response(buffer.read())
+            response.headers['Content-Type'] = 'application/pdf'
+            response.headers['Content-Disposition'] = 'attachment; filename=relatorio_tickets.pdf'
+            return response
+
+        except Exception as e:
+            return {'error': str(e)}, 500
