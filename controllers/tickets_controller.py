@@ -8,8 +8,9 @@ from config.extensions import cache
 import time 
 
 from flask import make_response
-from reportlab.pdfgen import canvas
 from io import BytesIO
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
 
 tickets_ns = Namespace(
     'tickets', 
@@ -295,6 +296,7 @@ class TicketsReport(Resource):
 
 @tickets_ns.route('/report/pdf')
 class TicketsReport(Resource):
+    @jwt_required
     @tickets_ns.expect(filter_parser) 
     def get(self):
         """Gera um relatório completo de tickets."""
@@ -312,17 +314,16 @@ class TicketsReport(Resource):
             )
 
             buffer = BytesIO()
-            pdf = canvas.Canvas(buffer)
 
-            y = 800
-            for line in report_text.split("\n"):
-                pdf.drawString(40, y, line)
-                y -= 15
-                if y < 40:
-                    pdf.showPage()
-                    y = 800
+            doc = SimpleDocTemplate(buffer)
+            styles = getSampleStyleSheet()
+            style = styles["Normal"]
 
-            pdf.save()
+            story = []
+            story.append(Paragraph(report_text.replace("\n", "<br/>"), style))
+
+            doc.build(story)
+
             buffer.seek(0)
 
             response = make_response(buffer.read())
