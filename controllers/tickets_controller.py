@@ -7,6 +7,10 @@ from services.report_service import ReportService
 from config.extensions import cache
 import time 
 
+from flask import make_response
+from reportlab.pdfgen import canvas
+from io import BytesIO
+
 tickets_ns = Namespace(
     'tickets', 
     description='Endpoints relacionados a tickets'
