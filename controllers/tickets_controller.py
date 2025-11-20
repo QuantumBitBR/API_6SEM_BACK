@@ -7,6 +7,11 @@ from services.report_service import ReportService
 from config.extensions import cache
 import time 
 
+from flask import make_response
+from io import BytesIO
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+
 tickets_ns = Namespace(
     'tickets', 
     description='Endpoints relacionados a tickets'
@@ -274,5 +279,46 @@ class TicketsReport(Resource):
                 createdat=args.get('createdat'),
                 end_date=args.get('end_date'))
             return {"data": report}, 200
+        except Exception as e:
+            return {'error': str(e)}, 500
+        
+
+@tickets_ns.route('/report/pdf')
+class TicketsReport(Resource):
+    @jwt_required
+    @tickets_ns.expect(filter_parser) 
+    def get(self):
+        """Gera um relatório completo de tickets."""
+        try:
+            report_service = ReportService()
+            args = filter_parser.parse_args()
+
+            report_text = report_service.generate_report(
+                company_id=args.get('company_id'),
+                product_id=args.get('product_id'),
+                category_id=args.get('category_id'),
+                priority_id=args.get('priority_id'),
+                createdat=args.get('createdat'),
+                end_date=args.get('end_date')
+            )
+
+            buffer = BytesIO()
+
+            doc = SimpleDocTemplate(buffer)
+            styles = getSampleStyleSheet()
+            style = styles["Normal"]
+
+            story = []
+            story.append(Paragraph(report_text.replace("\n", "<br/>"), style))
+
+            doc.build(story)
+
+            buffer.seek(0)
+
+            response = make_response(buffer.read())
+            response.headers['Content-Type'] = 'application/pdf'
+            response.headers['Content-Disposition'] = 'attachment; filename=relatorio_tickets.pdf'
+            return response
+
         except Exception as e:
             return {'error': str(e)}, 500
