@@ -1,16 +1,16 @@
 from flask_restx import Namespace, Resource, fields, reqparse
-from flask import request
+from flask import request, make_response
 from services.tickets_service import TicketsService
 from config.auth import jwt_required
 from services.report_service import ReportService
-
 from config.extensions import cache
 import time 
-
+import markdown
 from flask import make_response
 from io import BytesIO
-from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Paragraph, ListFlowable, ListItem
 from reportlab.lib.styles import getSampleStyleSheet
+from bs4 import BeautifulSoup
 
 tickets_ns = Namespace(
     'tickets', 
@@ -282,18 +282,18 @@ class TicketsReport(Resource):
         except Exception as e:
             return {'error': str(e)}, 500
         
-
 @tickets_ns.route('/report/pdf')
 class TicketsReport(Resource):
     @jwt_required
-    @tickets_ns.expect(filter_parser) 
+    @tickets_ns.expect(filter_parser)
     def get(self):
-        """Gera um relatório completo de tickets."""
+        """Gera relatório completo de tickets em PDF."""
         try:
             report_service = ReportService()
             args = filter_parser.parse_args()
 
-            report_text = report_service.generate_report(
+            # 🔥 1. Gera o relatório em Markdown
+            markdown_text = report_service.generate_report(
                 company_id=args.get('company_id'),
                 product_id=args.get('product_id'),
                 category_id=args.get('category_id'),
@@ -302,19 +302,20 @@ class TicketsReport(Resource):
                 end_date=args.get('end_date')
             )
 
+            # 🔥 2. Converte para HTML
+            html_text = markdown.markdown(markdown_text)
+
+            # 🔥 3. Converte HTML → elementos ReportLab
+            story = self.convert_html_to_story(html_text)
+
+            # 🔥 4. Gera PDF
             buffer = BytesIO()
-
             doc = SimpleDocTemplate(buffer)
-            styles = getSampleStyleSheet()
-            style = styles["Normal"]
-
-            story = []
-            story.append(Paragraph(report_text.replace("\n", "<br/>"), style))
 
             doc.build(story)
-
             buffer.seek(0)
 
+            # 🔥 5. Retorna o PDF
             response = make_response(buffer.read())
             response.headers['Content-Type'] = 'application/pdf'
             response.headers['Content-Disposition'] = 'attachment; filename=relatorio_tickets.pdf'
@@ -322,3 +323,44 @@ class TicketsReport(Resource):
 
         except Exception as e:
             return {'error': str(e)}, 500
+
+
+    # ----------------------------------------------------------------
+    # 👇 Função para converter HTML → PDF com títulos, listas e texto
+    # ----------------------------------------------------------------
+    def convert_html_to_story(self, html_text):
+        soup = BeautifulSoup(html_text, "html.parser")
+        styles = getSampleStyleSheet()
+
+        story = []
+
+        for elem in soup.children:
+            if elem.name in ("h1", "h2", "h3", "h4"):
+                style = styles["Heading" + elem.name[1]]  # Heading1, Heading2...
+                story.append(Paragraph(elem.text, style))
+
+            elif elem.name == "p":
+                story.append(Paragraph(elem.text, styles["Normal"]))
+
+            elif elem.name == "ul":
+                items = [
+                    ListItem(Paragraph(li.text, styles["Normal"]))
+                    for li in elem.find_all("li", recursive=False)
+                ]
+                story.append(ListFlowable(items, bulletType="bullet"))
+
+            elif elem.name == "ol":
+                items = [
+                    ListItem(Paragraph(li.text, styles["Normal"]))
+                    for li in elem.find_all("li", recursive=False)
+                ]
+                story.append(ListFlowable(items, bulletType="1"))
+
+            else:
+                # fallback: texto direto
+                if elem.string and elem.string.strip():
+                    story.append(Paragraph(elem.string, styles["Normal"]))
+
+            story.append(Paragraph("<br/>", styles["Normal"]))  # espaçamento
+
+        return story
