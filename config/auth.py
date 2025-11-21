@@ -80,6 +80,7 @@ def auth():
         if response[1] == 200:
             return {
                 'user_id': user.id,
+                'role': user.role,
                 'token': token,
                 **policy_info,   # junta os dados de política no retorno
                 'is_accept_unmandatory': response[0]['data']['is_accept']
