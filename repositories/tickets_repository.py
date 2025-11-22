@@ -21,7 +21,6 @@ class TicketsRepository:
         conditions = []
         params = []
         
-        # Mapeamento para simplificar a lógica de 'IN'
         id_filters = {
             'companyid': company_id,
             'productid': product_id,
@@ -274,9 +273,9 @@ class TicketsRepository:
                 if not row:
                     raise ValueError(f"Id {id} não encontrado!")
                             
-                if isinstance(row, tuple):
-                    colnames = [desc[0] for desc in cur.description]
-                    row = dict(zip(colnames, row))
+                colnames = [desc[0] for desc in cur.description]
+                row = dict(zip(colnames, list(row)))
+
 
                 for k, v in row.items():
                     if isinstance(v, memoryview):
@@ -428,3 +427,109 @@ class TicketsRepository:
         with get_cursor() as cur:
             cur.execute(sql_query)
             return cur.fetchall()
+        
+    def get_total_ticket_count(self) -> int:
+        """
+        Obtém o número total de tickets na tabela 'tickets'.
+        """
+        count_query = "SELECT COUNT(ticketid) FROM tickets;"
+        
+        with get_cursor() as cur:
+            cur.execute(count_query)
+            total = cur.fetchone()[0] 
+            
+            return total
+        
+    def get_all_tickets_details(
+        self, 
+        company_id: Optional[List[int]] = None, 
+        product_id: Optional[List[int]] = None, 
+        category_id: Optional[List[int]] = None, 
+        priority_id: Optional[List[int]] = None, 
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None,
+        page: int = 1,
+        limit: int = 50
+    ) -> List[Dict[str, Union[int, str]]]:
+        """
+        Busca todos os tickets com detalhes, aplicando filtros opcionais.
+        """
+        
+        sql_where, params = self._build_where_clause_and_params(
+            company_id=company_id,
+            product_id=product_id,
+            category_id=category_id,
+            priority_id=priority_id,
+            createdat=createdat,
+            end_date=end_date
+        )
+        
+        total_count = self.get_total_ticket_count()
+        
+        offset = (page - 1) * limit
+        
+        sql_query = """
+            SELECT
+                t.ticketid,
+                t.title_without_encrypt as title,
+                t.description_without_encrypt as description,
+                c.name AS company_name,
+                p.name AS product_name,
+                stat.name AS status_name,
+                t.channel as channel,
+                t.device,
+                prio.name AS priority_name,
+                ca.name AS category_name,
+                sub.name AS subcategory_name
+            FROM 
+                tickets t
+            JOIN 
+                companies c ON t.companyid = c.companyid
+            JOIN 
+                users u ON t.createdbyuserid = u.userid
+            JOIN
+                priorities prio ON t.priorityid = prio.priorityid
+            JOIN
+                categories ca ON t.categoryid = ca.categoryid
+            JOIN
+                products p ON t.productid = p.productid
+            JOIN
+                statuses stat ON t.currentstatusid = stat.statusid
+            LEFT JOIN 
+                subcategories sub ON t.subcategoryid = sub.subcategoryid
+            """ + sql_where + """ 
+            ORDER BY t.ticketid DESC 
+            LIMIT %s 
+            OFFSET %s;
+        """
+        
+        all_params = tuple(params) + (limit, offset)
+
+
+        results = []
+        with get_cursor() as cur:
+            cur.execute(sql_query, all_params) 
+            tickets_data = cur.fetchall()
+
+            for row in tickets_data:
+                results.append({
+                    "ticketid": row['ticketid'],
+                    "title": row['title'],
+                    "description": row['description'],
+                    "company_name": row['company_name'],
+                    "product_name": row['product_name'],
+                    "status_name": row['status_name'],
+                    "channel": row['channel'],
+                    "device": row['device'],
+                    "priority_name": row['priority_name'],
+                    "category_name": row['category_name'],
+                    "subcategory_name": row['subcategory_name'] if row['subcategory_name'] else None 
+                })
+                
+        return {
+            "page": page,
+            "limit": limit,
+            "total_tickets": total_count,
+            "total_pages": (total_count + limit - 1) // limit,
+            "data": results
+        }

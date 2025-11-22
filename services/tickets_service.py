@@ -243,7 +243,35 @@ class TicketsService:
         
         return result
 
+    def get_all_tickets_details(
+        self,
+        company_id: Optional[List[int]] = None, 
+        product_id: Optional[List[int]] = None, 
+        category_id: Optional[List[int]] = None, 
+        priority_id: Optional[List[int]] = None, 
+        createdat: Optional[str] = None,
+        end_date: Optional[str] = None,
+        page: int = 1,  
+        limit: int = 50  
+    ) -> Dict[str, Any]:
+        """
+        Chama o repositório para buscar tickets paginados, filtrados e com os dados 
+        relacionados (nomes) e descriptografados, retornando o formato JSON desejado.
+        
+        Retorna um dicionário com os dados da página e a lista de tickets.
+        """
+        
+        filter_kwargs = self._get_filter_kwargs(
+            company_id, product_id, category_id, priority_id, createdat, end_date
+        )
+        
+        filter_kwargs['page'] = page
+        filter_kwargs['limit'] = limit
+
+        return self.tickets_repository.get_all_tickets_details(**filter_kwargs)
+    
     def get_all_categories(self):
         """Busca todas as categorias de tickets."""
         categories = self.tickets_repository.get_all_categories()
         return [{"category_id": cat_id, "category_name": cat_name} for cat_id, cat_name in categories]
+    

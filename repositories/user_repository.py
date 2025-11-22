@@ -31,12 +31,11 @@ class UserRepository:
                 cur.execute(first_sql_query, (userid, ))
                 return True
             except Exception as e:
-                print(str(e))
                 return False
-
-    def get_by_id(self, userid):
+            
+    def get_user_authentication_by_id(self, userid):
         sql_query = """
-            SELECT * FROM users where userid = %s
+            SELECT * FROM user_authentication where id = %s
         """
 
         with get_cursor() as cur:
@@ -45,3 +44,9 @@ class UserRepository:
             if row:
                 return row
             return None
+
+    
+        
+    
+    
+             

@@ -13,6 +13,11 @@ model_privacy_policy_accept = privacy_policy_ns.model('PrivacyAcceptPost', {
     'privacyid': fields.Integer(required=True, description='Privacy police version id')
 })
 
+model_privacy_policy_create = privacy_policy_ns.model('PrivacyCreate', {
+    'text': fields.String(required=True, description='Privacy policy description/text'),
+    'is_mandatory': fields.Boolean(required=True, description='Define if the privacy is mandatory or not.')
+})
+
 @privacy_policy_ns.route("/accept")
 class AcceptPrivacy(Resource):
     @privacy_policy_ns.expect(model_privacy_policy_accept, validate=True)
@@ -24,11 +29,74 @@ class AcceptPrivacy(Resource):
         if id_user == None or id_privacy == None:
             return{
                 "error": "privacyid and userid cannot be null or empty"
-            }
+            },500
         policy_service = PrivacyPolicyService()
 
-        if policy_service.add_accept_privacy(id_user, id_privacy):
-            return {}, 201
-        return {
-            "error": "Something is wrong"
-        }, 500
+        response = policy_service.add_accept_privacy(id_user, id_privacy)
+
+        return response
+
+@privacy_policy_ns.route("/all")
+class GetAllPrivacyPolicies(Resource):
+    def get(self):
+        try:
+            service = PrivacyPolicyService()
+            response = service.get_privacy_policies()
+            return response
+        except Exception:
+            return {"error": "Algo ocorreu errado."}, 500
+    
+@privacy_policy_ns.route("/create")
+class CreatePrivacy(Resource):
+    @privacy_policy_ns.expect(model_privacy_policy_create, validate=True)
+    def post(self):
+        request_body = request.get_json()
+        text = request_body.get('text') if request_body else None
+        is_mandatory = request_body.get('is_mandatory') if request_body else None
+
+        if text == None or is_mandatory == None:
+            return {
+                "error": "text and is_mandatory cannot be null or empty"
+            }, 500
+        
+        service = PrivacyPolicyService()
+
+        response = service.create_privacy_policy(text, is_mandatory)
+
+        return response
+
+@privacy_policy_ns.route("/get-by-user")
+@privacy_policy_ns.doc(params={
+        'userid': {
+            'description': 'Id do usuário que gostaria de buscar',
+            'type': 'int',
+            'required': True
+        }
+    })
+class GetPrivacyPolicyByUser(Resource):
+    def get(self):
+        try:
+            service = PrivacyPolicyService()
+            userid = request.args.get("userid", type=int)
+            response = service.get_all_privacy_by_user(userid)
+            return response
+        except Exception:
+            return {"error": "Algo ocorreu errado."}, 500
+        
+@privacy_policy_ns.route("/get-accept-unmandatory")
+@privacy_policy_ns.doc(params={
+        'userid': {
+            'description': 'Id do usuário que gostaria de buscar',
+            'type': 'int',
+            'required': True
+        }
+    })
+class GetUnmandatoryByUser(Resource):
+    def get(self):
+        try:
+            service = PrivacyPolicyService()
+            userid = request.args.get("userid", type=int)
+            response = service.get_is_assigned_unmandatory_policy(userid)
+            return response
+        except Exception:
+            return {"error": "Algo ocorreu errado."}, 500
