@@ -273,9 +273,9 @@ class TicketsRepository:
                 if not row:
                     raise ValueError(f"Id {id} não encontrado!")
                             
-                if isinstance(row, tuple):
-                    colnames = [desc[0] for desc in cur.description]
-                    row = dict(zip(colnames, row))
+                colnames = [desc[0] for desc in cur.description]
+                row = dict(zip(colnames, list(row)))
+
 
                 for k, v in row.items():
                     if isinstance(v, memoryview):
